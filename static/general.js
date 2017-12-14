@@ -30,7 +30,7 @@ $(document).ready(function(){
     if ($('.editPanel').length != 0) {
 
         function checkit() {
-            var checkedVal = $('input[name=type]:checked').val();
+            var checkedVal = $('input[name=category_id]:checked').val();
             if (checkedVal === undefined) {
                 // hide the fields
                 $('.fieldFront').hide();

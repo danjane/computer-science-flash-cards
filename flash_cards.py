@@ -110,17 +110,25 @@ def filter_cards(filter_name):
     return render_template('cards.html', cards=cards, filter_name=filter_name)
 
 
-@app.route('/add', methods=['POST'])
+@app.route('/add')
+def add():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    return render_template('add.html')
+
+
+@app.route('/add_card', methods=['POST'])
 def add_card():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
     with get_db().cursor() as cursor:
-        cursor.execute('INSERT INTO cards (category_id, front, back) VALUES (?, ?, ?)',
-                   [request.form['category_id'],
-                    request.form['front'],
-                    request.form['back']
-                    ])
+        cursor.execute('INSERT INTO cards (category_id, front, back) VALUES (%s, %s, %s)', [
+            request.form['category_id'],
+            request.form['front'],
+            request.form['back']
+        ])
         get_db().commit()
         flash('New card was successfully added.')
 
