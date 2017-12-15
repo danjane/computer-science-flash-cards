@@ -69,6 +69,58 @@ def index():
         return redirect(url_for('login'))
 
 
+@app.route('/categories', methods=['GET', 'POST'])
+def categories():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    with get_db().cursor() as cursor:
+        cursor.execute('SELECT id, name FROM categories WHERE user_id=%s ORDER BY id DESC', [session['user_id']])
+        categories = cursor.fetchall()
+
+    return render_template('categories.html', categories=categories)
+
+
+@app.route('/category_post', methods=['POST'])
+def category_post():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    category_id = int(request.form['id'])
+
+    with get_db().cursor() as cursor:
+        if category_id:
+            cursor.execute('UPDATE categories SET name = %s WHERE id = %s AND user_id = %s', [
+                request.form['name'],
+                category_id,
+                session['user_id']
+            ])
+        else:
+            cursor.execute('INSERT INTO categories (name, user_id) VALUES (%s, %s)', [
+                request.form['name'],
+                session['user_id']
+            ])
+        get_db().commit()
+        flash('Successfully')
+
+        return redirect(url_for('categories'))
+
+
+@app.route('/category_delete/<category_id>')
+def category_delete(category_id):
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    with get_db().cursor() as cursor:
+        cursor.execute('DELETE FROM categories WHERE id = %s AND user_id = %s', [category_id, session['user_id']])
+        get_db().commit()
+        cursor.execute('DELETE FROM cards WHERE category_id = %s AND user_id = %s', [category_id, session['user_id']])
+        get_db().commit()
+        flash('Category deleted.')
+
+    return redirect(url_for('categories'))
+
+
 @app.route('/cards')
 def cards():
     if not session.get('logged_in'):

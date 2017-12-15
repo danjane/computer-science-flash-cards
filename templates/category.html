@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+{% block body %}
+
+    <div class="well editPanel">
+        <h2>Add a Card</h2>
+        <form action="{{ url_for('add_card') }}" method="post" class="cardForm">
+            <div class="form-group">
+                <input type="hidden" name="id" value="{{ 0 if not id else id }}" />
+                <label for="name">
+                    <input type="text" name="name" value="{{ category.name }}" id="general"/>
+                </label>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="saveButton btn btn-lg btn-primary">Save</button>
+            </div>
+        </form>
+    </div>
+{% endblock %}
