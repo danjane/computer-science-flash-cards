@@ -75,7 +75,14 @@ def categories():
         return redirect(url_for('login'))
 
     with get_db().cursor() as cursor:
-        cursor.execute('SELECT id, name FROM categories WHERE user_id=%s ORDER BY id DESC', [session['user_id']])
+        query = '''
+            SELECT id as cid, name, (
+                SELECT count(*) FROM cards WHERE category_id = cid) as count
+            FROM categories
+            WHERE user_id=%s
+            ORDER BY id DESC
+        '''
+        cursor.execute(query, [session['user_id']])
         categories = cursor.fetchall()
 
     return render_template('categories.html', categories=categories)
