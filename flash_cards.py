@@ -1,7 +1,5 @@
 import os
 import pymysql
-from hashlib import sha256
-from hmac import HMAC
 from flask import Flask, request, session, g, redirect, url_for, abort, \
     render_template, flash
 from werkzeug.security import generate_password_hash, \
@@ -9,6 +7,7 @@ from werkzeug.security import generate_password_hash, \
 
 
 app = Flask(__name__)
+app.debug = True
 app.config.from_object(__name__)
 
 # Load default config and override config from an environment variable
@@ -366,4 +365,4 @@ def validate_user(email, password):
 
 """如果直接运行本模块，则直接执行"""
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', debug=True)
+    app.run(host='0.0.0.0')
