@@ -78,38 +78,13 @@ def cards():
         query = '''
             SELECT id, category_id, front, back, known
             FROM cards
+            WHERE user_id = %s
             ORDER BY id DESC
         '''
-        cursor.execute(query)
+        cursor.execute(query, [session['user_id']])
         cards = cursor.fetchall()
 
-    return render_template('cards.html', cards=cards, filter_name="all")
-
-
-@app.route('/filter_cards/<filter_name>')
-def filter_cards(filter_name):
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
-
-    filters = {
-        "all":      "where 1 = 1",
-        "general":  "where category_id = 1",
-        "code":     "where category_id = 2",
-        "known":    "where known = 1",
-        "unknown":  "where known = 0",
-    }
-
-    query = filters.get(filter_name)
-
-    if not query:
-        return redirect(url_for('cards'))
-
-    with get_db().cursor() as cursor:
-        fullquery = "SELECT id, category_id, front, back, known FROM cards " + query + " ORDER BY id DESC"
-        cursor.execute(fullquery)
-        cards = cursor.fetchall()
-
-    return render_template('cards.html', cards=cards, filter_name=filter_name)
+    return render_template('cards.html', cards=cards)
 
 
 @app.route('/add')
@@ -126,10 +101,11 @@ def add_card():
         return redirect(url_for('login'))
 
     with get_db().cursor() as cursor:
-        cursor.execute('INSERT INTO cards (category_id, front, back) VALUES (%s, %s, %s)', [
+        cursor.execute('INSERT INTO cards (category_id, front, back, user_id) VALUES (%s, %s, %s)', [
             request.form['category_id'],
             request.form['front'],
-            request.form['back']
+            request.form['back'],
+            session['user_id']
         ])
         get_db().commit()
         flash('New card was successfully added.')
@@ -146,9 +122,9 @@ def edit(card_id):
         query = '''
             SELECT id, category_id, front, back, known
             FROM cards
-            WHERE id = %s
+            WHERE id = %s AND user_id = %s
         '''
-        cursor.execute(query, [card_id])
+        cursor.execute(query, [card_id, session['user_id']])
         card = cursor.fetchone()
 
     return render_template('edit.html', card=card)
@@ -171,6 +147,7 @@ def edit_card():
               back = %s,
               known = %s
             WHERE id = %s
+            AND user_id = %s
         '''
         cursor.execute(
             command,
@@ -179,7 +156,8 @@ def edit_card():
                 request.form['front'],
                 request.form['back'],
                 known,
-                request.form['card_id']
+                request.form['card_id'],
+                session['user_id']
             ]
         )
         get_db().commit()
@@ -194,7 +172,7 @@ def delete(card_id):
         return redirect(url_for('login'))
 
     with get_db().cursor() as cursor:
-        cursor.execute('DELETE FROM cards WHERE id = %s', [card_id])
+        cursor.execute('DELETE FROM cards WHERE id = %s AND user_id = %s', [card_id, session['user_id']])
         get_db().commit()
         flash('Card deleted.')
 
@@ -247,10 +225,11 @@ def get_card_by_category_id(category_id):
           FROM cards
           WHERE
             category_id = %s
-            and known = 0
+            AND user_id = %s
+            AND known = 0
           LIMIT 1
         '''
-        cursor.execute(query, [category_id])
+        cursor.execute(query, [category_id, session['user_id']])
         return cursor.fetchone()
 
 
@@ -260,12 +239,11 @@ def get_card_by_id(card_id):
           SELECT
             id, category_id, front, back, known
           FROM cards
-          WHERE
-            id = %s
+          WHERE id = %s AND user_id = %s
           LIMIT 1
         '''
 
-        cursor.execute(query, [card_id])
+        cursor.execute(query, [card_id, session['user_id']])
         return cursor.fetchone()
 
 
@@ -275,7 +253,7 @@ def mark_known(card_id, card_type):
         return redirect(url_for('login'))
 
     with get_db() as cursor:
-        cursor.execute('UPDATE cards SET known = 1 WHERE id = %s', [card_id])
+        cursor.execute('UPDATE cards SET known = 1 WHERE id = %s AND user_id = %s', [card_id, session['user_id']])
         get_db().commit()
         flash('Card marked as known.')
 
@@ -291,17 +269,28 @@ def login():
 
         if not email or not password:
             error = 'Email and Password can not be empty'
-        elif not validate_user(email, password):
-            error = 'Invalid username or password!'
-        else:
-            session['logged_in'] = True
-            session.permanent = True
-            return redirect(url_for('cards'))
+            return render_template('login.html', error=error)
+
+        user = get_user_by_email(email)
+
+        if not user or not check_password_hash(user['password'], password):
+            error = 'Invalid username or password'
+            return render_template('login.html', error=error)
+
+        session['user_id'] = user['id']
+        session['username'] = user['username']
+        session['logged_in'] = True
+        session.permanent = True
+        flash("You've logged in")
+        return redirect(url_for('cards'))
+
     return render_template('login.html', error=error)
 
 
 @app.route('/logout')
 def logout():
+    session.pop('user_id', None)
+    session.pop('username', None)
     session.pop('logged_in', None)
     flash("You've logged out")
     return redirect(url_for('index'))
@@ -318,10 +307,12 @@ def register():
         elif get_user_by_email(email):
             error = 'Email has already been registered'
         else:
-            add_user(email, password)
+            user = add_user(email, password)
+            session['user_id'] = user['id']
+            session['username'] = user['username']
             session['logged_in'] = True
             session.permanent = True
-            flash('Register success!')
+            flash('Register success')
             return redirect(url_for('cards'))
 
     return render_template('register.html', error=error)
@@ -350,17 +341,7 @@ def add_user(email, password):
         cursor.execute(query, [username, email, pw_hash])
         get_db().commit()
 
-
-def validate_user(email, password):
-    user = get_user_by_email(email)
-
-    if not user:
-        return False
-
-    if check_password_hash(user['password'], password):
-        return True
-
-    return False
+        return {id: cursor.lastrowid, username: username}
 
 
 """如果直接运行本模块，则直接执行"""
