@@ -1,8 +1,11 @@
 import os
 import pymysql
-import pickle
+from hashlib import sha256
+from hmac import HMAC
 from flask import Flask, request, session, g, redirect, url_for, abort, \
     render_template, flash
+from werkzeug.security import generate_password_hash, \
+    check_password_hash
 
 
 app = Flask(__name__)
@@ -284,13 +287,16 @@ def mark_known(card_id, card_type):
 def login():
     error = None
     if request.method == 'POST':
-        if request.form['username'] != app.config['USERNAME']:
-            error = 'Invalid username or password!'
-        elif request.form['password'] != app.config['PASSWORD']:
+        email = request.form['email']
+        password = request.form['password']
+
+        if not email or not password:
+            error = 'Email and Password can not be empty'
+        elif not validate_user(email, password):
             error = 'Invalid username or password!'
         else:
             session['logged_in'] = True
-            session.permanent = True  # stay logged in
+            session.permanent = True
             return redirect(url_for('cards'))
     return render_template('login.html', error=error)
 
@@ -300,6 +306,62 @@ def logout():
     session.pop('logged_in', None)
     flash("You've logged out")
     return redirect(url_for('index'))
+
+
+@app.route('/register', methods=['GET', 'Post'])
+def register():
+    error = None
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        if not email or not password:
+            error = 'Email and Password can not be empty'
+        elif get_user_by_email(email):
+            error = 'Email has already been registered'
+        else:
+            add_user(email, password)
+            session['logged_in'] = True
+            session.permanent = True
+            flash('Register success!')
+            return redirect(url_for('cards'))
+
+    return render_template('register.html', error=error)
+
+
+def get_user_by_email(email):
+    with get_db().cursor() as cursor:
+        query = '''
+            SELECT id, username, email, password FROM users
+            WHERE email = %s
+            LIMIT 1
+        '''
+        cursor.execute(query, [email])
+        return cursor.fetchone()
+
+
+def add_user(email, password):
+    username = email.partition('@')[0]
+    pw_hash = generate_password_hash(password)
+
+    with get_db().cursor() as cursor:
+        query = '''
+            INSERT INTO users (username, email, password)
+            VALUES (%s, %s, %s)
+        '''
+        cursor.execute(query, [username, email, pw_hash])
+        get_db().commit()
+
+
+def validate_user(email, password):
+    user = get_user_by_email(email)
+
+    if not user:
+        return False
+
+    if check_password_hash(user['password'], password):
+        return True
+
+    return False
 
 
 """如果直接运行本模块，则直接执行"""
