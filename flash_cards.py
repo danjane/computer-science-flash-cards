@@ -76,11 +76,11 @@ def categories():
 
     with get_db().cursor() as cursor:
         query = '''
-            SELECT id as cid, name, (
+            SELECT id as cid, name, top, (
                 SELECT count(*) FROM cards WHERE category_id = cid) as count
             FROM categories
             WHERE user_id=%s
-            ORDER BY id DESC
+            ORDER BY top DESC, update_time DESC
         '''
         cursor.execute(query, [session['user_id']])
         categories = cursor.fetchall()
@@ -126,6 +126,22 @@ def category_delete(category_id):
         flash('Category deleted.')
 
     return redirect(url_for('categories'))
+
+
+@app.route('/category_top/<category_id>')
+def category_top(category_id):
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    with get_db().cursor() as cursor:
+        cursor.execute('UPDATE categories SET top = 1-top WHERE id = %s AND user_id = %s', [
+            category_id,
+            session['user_id']
+        ])
+        get_db().commit()
+        flash('Successfully')
+
+        return redirect(url_for('categories'))
 
 
 @app.route('/cards')

@@ -14,8 +14,17 @@
         {% for category in categories %}
             <tr class="categoryItem">
                 <td class="categoryContent text-right">
-                    <span class="hidden categoryId">{{ category.cid }}</span>
-                    <span class="pull-left categoryName">{{ category.name }} ({{ category.count }})</span>
+                    <a href="{{ url_for('cards', category_id=category.cid) }}">
+                        <span class="hidden categoryId">{{ category.cid }}</span>
+                        <span class="pull-left categoryName">
+                            {{ category.name }}
+                            <span class="small text-muted">({{ category.count }})</span>
+                        </span>
+                    </a>
+
+                    <a href="{{ url_for('category_top', category_id=category.cid) }}" class="btn btn-xs btn-link topCategory">
+                        <i class="fa {{ 'fa-star' if category.top else 'fa-star-o' }}" aria-hidden="true"></i> Top
+                    </a>
 
                     <button class="btn btn-xs btn-link editCategory">
                         <i class="fa fa-pencil" aria-hidden="true"></i> Edit
