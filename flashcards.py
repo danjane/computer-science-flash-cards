@@ -7,38 +7,18 @@ from werkzeug.security import generate_password_hash, \
 
 
 app = Flask(__name__)
-app.debug = True
-app.config.from_object(__name__)
-
-# Load default config and override config from an environment variable
-app.config.update(dict(
-    DATABASE=os.path.join(app.root_path, 'db', 'cards-jwasham-extreme.db'),
-    SECRET_KEY='development key',
-    USERNAME='admin',
-    PASSWORD='default'
-))
-app.config.from_envvar('CARDS_SETTINGS', silent=True)
-
-
-def init_db():
-    db = get_db()
-    with app.open_resource('data/schema.sql', mode='r') as f:
-        db.cursor().executescript(f.read())
-    db.commit()
+app.config.from_object('config')
 
 
 def get_db():
-    """Opens a new database connection if there is none yet for the
-    current application context.
-    """
     if not hasattr(g, 'mysql_db'):
         g.mysql_db = pymysql.connect(
-            host='127.0.0.1',
-            user='root',
-            password='123456',
-            port=3306,
-            db='flashcards',
-            charset='utf8',
+            host=app.config['DATABASE_HOST'],
+            user=app.config['DATABASE_USER'],
+            password=app.config['DATABASE_PASSWORD'],
+            port=app.config['DATABASE_PORT'],
+            db=app.config['DATABASE_NAME'],
+            charset=app.config['DATABASE_CHARSET'],
             cursorclass=pymysql.cursors.DictCursor
         )
     return g.mysql_db
@@ -49,16 +29,6 @@ def close_db(error):
     """Closes the database again at the end of the request."""
     if hasattr(g, 'mysql_db'):
         g.mysql_db.close()
-
-
-# -----------------------------------------------------------
-
-# Uncomment and use this to initialize database, then comment it
-#   You can rerun it to pave the database and start over
-@app.route('/initdb')
-def initdb():
-    init_db()
-    return 'Initialized the database.'
 
 
 @app.route('/settings')
@@ -81,7 +51,6 @@ def settings_save():
         with get_db().cursor() as cursor:
             if request.form['password']:
                 query = 'UPDATE users SET username = %s, email = %s, password = %s, display_mode = %s WHERE id = %s'
-                hw_hash = generate_password_hash(request.form['password'])
                 cursor.execute(query, [
                     request.form['username'],
                     request.form['email'],
@@ -399,7 +368,7 @@ def login():
         session['logged_in'] = True
         session.permanent = True
         flash("You've logged in")
-        return redirect(url_for('cards'))
+        return redirect(url_for('categories'))
 
     return render_template('login.html', error=error)
 

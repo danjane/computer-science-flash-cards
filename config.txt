@@ -1,3 +1,0 @@
-SECRET_KEY='ajsldjfoiasjdlaj2334rk'
-USERNAME='guozao'
-PASSWORD='guozao'

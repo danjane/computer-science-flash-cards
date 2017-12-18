@@ -13,13 +13,11 @@
     <div class="container">
         <div class="row">
             <div class="col-xs-12">
-
-                <br/>
                 <nav class="navbar navbar-default">
                     <div class="navbar-header">
                         <a class="navbar-brand" href="{{ url_for('index') }}">CS Flash Cards</a>
-
-                        <ul class="nav navbar-nav navbar-right">
+                    </div>
+                    <ul class="nav navbar-nav navbar-right">
                             {% if not session.logged_in %}
                                 <li><a href="{{ url_for('login') }}">Login</a></li>
                                 <li><a href="{{ url_for('register') }}">Register</a></li>
@@ -31,7 +29,6 @@
                                 <li><a href="{{ url_for('settings') }}">settings</a></li>
                             {% endif %}
                         </ul>
-                    </div>
                 </nav>
 
                 {% for message in get_flashed_messages() %}
