@@ -33,7 +33,7 @@ def get_db():
     """
     if not hasattr(g, 'mysql_db'):
         g.mysql_db = pymysql.connect(
-            host='mysql',
+            host='127.0.0.1',
             user='root',
             password='123456',
             port=3306,
@@ -59,6 +59,48 @@ def close_db(error):
 def initdb():
     init_db()
     return 'Initialized the database.'
+
+
+@app.route('/settings')
+def settings():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    with get_db().cursor() as cursor:
+        query = 'SELECT username, email, display_mode FROM users where id = %s LIMIT 1'
+        cursor.execute(query, [session['user_id']])
+        user = cursor.fetchone()
+    return render_template('settings.html', user=user)
+
+
+@app.route('/settings_save', methods=['POST'])
+def settings_save():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        with get_db().cursor() as cursor:
+            if request.form['password']:
+                query = 'UPDATE users SET username = %s, email = %s, password = %s, display_mode = %s WHERE id = %s'
+                hw_hash = generate_password_hash(request.form['password'])
+                cursor.execute(query, [
+                    request.form['username'],
+                    request.form['email'],
+                    generate_password_hash(request.form['password']),
+                    request.form['display_mode'],
+                    session['user_id']
+                ])
+            else:
+                query = 'UPDATE users SET username = %s, email = %s, display_mode = %s WHERE id = %s'
+                cursor.execute(query, [
+                    request.form['username'],
+                    request.form['email'],
+                    request.form['display_mode'],
+                    session['user_id']
+                ])
+            get_db().commit()
+            flash('Save successfully')
+
+    return redirect(url_for('settings'))
 
 
 @app.route('/')
@@ -343,13 +385,13 @@ def login():
         password = request.form['password']
 
         if not email or not password:
-            error = 'Email and Password can not be empty'
+            error = 'Email and password can not be empty'
             return render_template('login.html', error=error)
 
         user = get_user_by_email(email)
 
         if not user or not check_password_hash(user['password'], password):
-            error = 'Invalid username or password'
+            error = 'Invalid email or password'
             return render_template('login.html', error=error)
 
         session['user_id'] = user['id']
@@ -416,7 +458,7 @@ def add_user(email, password):
         cursor.execute(query, [username, email, pw_hash])
         get_db().commit()
 
-        return {id: cursor.lastrowid, username: username}
+        return {"id": cursor.lastrowid, "username": username}
 
 
 """如果直接运行本模块，则直接执行"""
