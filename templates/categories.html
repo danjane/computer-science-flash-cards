@@ -14,12 +14,10 @@
         {% for category in categories %}
             <tr class="categoryItem">
                 <td class="categoryContent text-right">
-                    <a href="{{ url_for('cards', category_id=category.cid) }}">
+                    <a href="{{ url_for('cards', category_id=category.cid) }}" class="pull-left">
                         <span class="hidden categoryId">{{ category.cid }}</span>
-                        <span class="pull-left categoryName">
-                            {{ category.name }}
-                            <span class="small text-muted">({{ category.count }})</span>
-                        </span>
+                        <span class="categoryName">{{ category.name }}</span>
+                        <span class="small text-muted">({{ category.count }})</span>
                     </a>
 
                     <a href="{{ url_for('category_top', category_id=category.cid) }}" class="btn btn-xs btn-link topCategory">
