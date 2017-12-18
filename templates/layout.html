@@ -10,34 +10,45 @@
     <script src="{{ url_for('static', filename='highlight.pack.js') }}"></script>
 </head>
 <body>
-    <div class="container">
-        <div class="row">
-            <div class="col-xs-12">
-                <nav class="navbar navbar-default">
-                    <div class="navbar-header">
-                        <a class="navbar-brand" href="{{ url_for('index') }}">CS Flash Cards</a>
-                    </div>
-                    <ul class="nav navbar-nav navbar-right">
-                            {% if not session.logged_in %}
-                                <li><a href="{{ url_for('login') }}">Login</a></li>
-                                <li><a href="{{ url_for('register') }}">Register</a></li>
-                            {% else %}
-                                <li><a href="{{ url_for('categories') }}">categories</a></li>
-                                <li><a href="{{ url_for('cards') }}">cards</a></li>
-                                <li><a href="{{ url_for('general') }}">general</a></li>
-                                <li><a href="{{ url_for('code') }}">code</a></li>
-                                <li><a href="{{ url_for('settings') }}">settings</a></li>
-                            {% endif %}
-                        </ul>
-                </nav>
 
-                {% for message in get_flashed_messages() %}
-                    <div class="alert alert-success" role="alert">{{ message }}</div>
-                {% endfor %}
-                {% block body %}{% endblock %}
+    <nav class="navbar navbar-default">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="{{ url_for('index') }}">FlashCards</a>
+            </div>
+
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                    {% if not session.logged_in %}
+                        <li><a href="{{ url_for('login') }}">Login</a></li>
+                        <li><a href="{{ url_for('register') }}">Register</a></li>
+                    {% else %}
+                        <li><a href="{{ url_for('categories') }}">Categories</a></li>
+                        <li><a href="{{ url_for('general') }}">general</a></li>
+                        <li><a href="{{ url_for('code') }}">code</a></li>
+                        <li><a href="{{ url_for('settings') }}">Settings</a></li>
+                    {% endif %}
+                </ul>
             </div>
         </div>
+    </nav>
+
+    {% for message in get_flashed_messages() %}
+        <div class="alert alert-success" role="alert">{{ message }}</div>
+    {% endfor %}
+
+    <div class="container">
+        <div class="row">
+            {% block body %}{% endblock %}
+        </div>
     </div>
+
     <script src="{{ url_for('static', filename='jquery-2.2.4.min.js') }}"></script>
     <script src="{{ url_for('static', filename='bootstrap.min.js') }}"></script>
     <script src="{{ url_for('static', filename='fastclick.min.js') }}"></script>
