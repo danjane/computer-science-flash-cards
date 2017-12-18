@@ -106,6 +106,8 @@ $(document).ready(function(){
         $(this).find('.btn-ok').attr('href', $(e.relatedTarget).data('href'));
     });
 
+    $('.alert').show().delay(1500).fadeOut();
+
     // to remove the short delay on click on touch devices
     FastClick.attach(document.body);
 });
