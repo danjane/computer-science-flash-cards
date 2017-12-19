@@ -1,9 +1,8 @@
-import os
 import pymysql
+from models import dao
+from hashids import Hashids
 from flask import Flask, request, session, g, redirect, url_for, abort, \
     render_template, flash
-from werkzeug.security import generate_password_hash, \
-    check_password_hash
 
 
 app = Flask(__name__)
@@ -35,10 +34,9 @@ def close_db(error):
 def settings():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
-    with get_db().cursor() as cursor:
-        query = 'SELECT username, email, display_mode FROM users where id = %s LIMIT 1'
-        cursor.execute(query, [session['user_id']])
-        user = cursor.fetchone()
+
+    user = dao.get_user(session['user_id'])
+
     return render_template('settings.html', user=user)
 
 
@@ -54,7 +52,7 @@ def settings_save():
                 cursor.execute(query, [
                     request.form['username'],
                     request.form['email'],
-                    generate_password_hash(request.form['password']),
+                    dao.get_password(request.form['password']),
                     request.form['display_mode'],
                     session['user_id']
                 ])
@@ -85,16 +83,7 @@ def categories():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    with get_db().cursor() as cursor:
-        query = '''
-            SELECT user_id as uid, id as cid, name, top, (
-                SELECT count(*) FROM cards WHERE user_id = uid AND category_id = cid) as count
-            FROM categories
-            WHERE user_id=%s
-            ORDER BY top DESC, update_time DESC
-        '''
-        cursor.execute(query, [session['user_id']])
-        categories = cursor.fetchall()
+    categories = dao.get_categories(session['user_id'])
 
     return render_template('categories.html', categories=categories)
 
@@ -129,12 +118,8 @@ def category_delete(category_id):
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    with get_db().cursor() as cursor:
-        cursor.execute('DELETE FROM categories WHERE id = %s AND user_id = %s', [category_id, session['user_id']])
-        get_db().commit()
-        cursor.execute('DELETE FROM cards WHERE category_id = %s AND user_id = %s', [category_id, session['user_id']])
-        get_db().commit()
-        flash('Category deleted.')
+    dao.delete_categories(category_id, session['user_id'])
+    flash('Category deleted.')
 
     return redirect(url_for('categories'))
 
@@ -144,15 +129,10 @@ def category_top(category_id):
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    with get_db().cursor() as cursor:
-        cursor.execute('UPDATE categories SET top = 1-top WHERE id = %s AND user_id = %s', [
-            category_id,
-            session['user_id']
-        ])
-        get_db().commit()
-        flash('Successfully')
+    dao.top_category(category_id, session['user_id'])
+    flash('Successfully')
 
-        return redirect(url_for('categories'))
+    return redirect(url_for('categories'))
 
 
 @app.route('/cards/<category_id>')
@@ -160,15 +140,7 @@ def cards(category_id):
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    with get_db().cursor() as cursor:
-        query = '''
-            SELECT id, category_id, front, back, known
-            FROM cards
-            WHERE category_id = %s AND user_id = %s
-            ORDER BY id DESC
-        '''
-        cursor.execute(query, [category_id, session['user_id']])
-        cards = cursor.fetchall()
+    cards = dao.get_cards(category_id, session['user_id'])
 
     return render_template('cards.html', cards=cards)
 
@@ -186,17 +158,14 @@ def add_card():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    with get_db().cursor() as cursor:
-        cursor.execute('INSERT INTO cards (category_id, front, back, user_id) VALUES (%s, %s, %s)', [
-            request.form['category_id'],
-            request.form['front'],
-            request.form['back'],
-            session['user_id']
-        ])
-        get_db().commit()
-        flash('New card was successfully added.')
+    dao.add_card({
+        "category_id": request.form['category_id'],
+        "front": request.form['front'],
+        "back": request.form['back'],
+    }, session['user_id'])
+    flash('New card was successfully added.')
 
-        return redirect(url_for('cards'))
+    return redirect(url_for('cards'))
 
 
 @app.route('/edit/<card_id>')
@@ -290,9 +259,9 @@ def memorize(category, card_id):
         return redirect(url_for('cards'))
 
     if card_id:
-        card = get_card_by_id(card_id)
+        card = dao.get_card_by_id(card_id, session['user_id'])
     else:
-        card = get_card_by_category_id(category_id)
+        card = dao.get_card_by_category_id(category_id, session['user_id'])
     if not card:
         flash("You've learned all the " + category + " cards.")
         return redirect(url_for('cards'))
@@ -303,45 +272,13 @@ def memorize(category, card_id):
                            short_answer=short_answer)
 
 
-def get_card_by_category_id(category_id):
-    with get_db().cursor() as cursor:
-        query = '''
-          SELECT
-            id, category_id, front, back, known
-          FROM cards
-          WHERE
-            category_id = %s
-            AND user_id = %s
-            AND known = 0
-          LIMIT 1
-        '''
-        cursor.execute(query, [category_id, session['user_id']])
-        return cursor.fetchone()
-
-
-def get_card_by_id(card_id):
-    with get_db().cursor() as cursor:
-        query = '''
-          SELECT
-            id, category_id, front, back, known
-          FROM cards
-          WHERE id = %s AND user_id = %s
-          LIMIT 1
-        '''
-
-        cursor.execute(query, [card_id, session['user_id']])
-        return cursor.fetchone()
-
-
 @app.route('/mark_known/<card_id>/<card_type>')
 def mark_known(card_id, card_type):
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    with get_db() as cursor:
-        cursor.execute('UPDATE cards SET known = 1 WHERE id = %s AND user_id = %s', [card_id, session['user_id']])
-        get_db().commit()
-        flash('Card marked as known.')
+    dao.mark_known(card_id, session['user_id'])
+    flash('Card marked as known.')
 
     return redirect(url_for(card_type))
 
@@ -357,9 +294,9 @@ def login():
             error = 'Email and password can not be empty'
             return render_template('login.html', error=error)
 
-        user = get_user_by_email(email)
+        user = dao.get_user_by_email(email)
 
-        if not user or not check_password_hash(user['password'], password):
+        if not user or not dao.check_password(user['password'], password):
             error = 'Invalid email or password'
             return render_template('login.html', error=error)
 
@@ -390,10 +327,10 @@ def register():
         password = request.form['password']
         if not email or not password:
             error = 'Email and Password can not be empty'
-        elif get_user_by_email(email):
+        elif dao.get_user_by_email(email):
             error = 'Email has already been registered'
         else:
-            user = add_user(email, password)
+            user = dao.add_user(email, password)
             session['user_id'] = user['id']
             session['username'] = user['username']
             session['logged_in'] = True
@@ -402,32 +339,6 @@ def register():
             return redirect(url_for('cards'))
 
     return render_template('register.html', error=error)
-
-
-def get_user_by_email(email):
-    with get_db().cursor() as cursor:
-        query = '''
-            SELECT id, username, email, password FROM users
-            WHERE email = %s
-            LIMIT 1
-        '''
-        cursor.execute(query, [email])
-        return cursor.fetchone()
-
-
-def add_user(email, password):
-    username = email.partition('@')[0]
-    pw_hash = generate_password_hash(password)
-
-    with get_db().cursor() as cursor:
-        query = '''
-            INSERT INTO users (username, email, password)
-            VALUES (%s, %s, %s)
-        '''
-        cursor.execute(query, [username, email, pw_hash])
-        get_db().commit()
-
-        return {"id": cursor.lastrowid, "username": username}
 
 
 """如果直接运行本模块，则直接执行"""
