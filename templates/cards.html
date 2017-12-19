@@ -1,42 +1,29 @@
 {% extends "layout.html" %}
 {% block body %}
 
-    <div class="page-header">
-        <h2>{{ cards|length }} Card{{ '' if (cards|length == 1) else 's' }}</h2>
-    </div>
-
     <a href="{{ url_for('add')}}" class="btn btn-danger"><i class="fa fa-plus"></i> Add</a>
 
-    <br />
-    <br />
+    <div class="row">
+        <div class="col-sm-12 text-muted text-center">
+            <span class="slider-num">1</span> / <span>{{ cards|length }}</span>
+        </div>
+    </div>
 
-    <table class="table table-bordered">
-        {% for card in cards %}
-            <tr>
-                <td>
-                    <a href="{{ url_for('edit', card_id=card.id) }}" class="btn btn-xs btn-primary"><i class="fa fa-pencil" aria-hidden="true"></i></a>
-                </td>
-                <td class="cardContent">
-                    <h4>
-                        {{ card.front }}
-                    </h4>
-                    {% if card.category_id == 1 %}
-                        {{ card.back|replace("\n", "<br />")|safe }}
-                    {% else %}
-                        <pre><code>{{ card.back|escape }}</code></pre>
-                    {% endif %}
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td>
-                    <em>No cards to show.</em>
-                </td>
-            </tr>
-        {% endfor %}
-    </table>
-
-
-
+    <div id="carousel-slide" class="carousel slide"
+         data-ride="carousel"
+         data-interval="false"
+         data-wrap="false">
+        <div class="carousel-inner" role="listbox">
+          {% for index in range(cards|length) %}
+                <div class="item {{ 'active' if index == 0 else '' }}">
+                    <div class="text-danger" style="min-height: 200px;background: #ccc;">
+                        {{ cards[index].id }} === {{ cards[index].front }}
+                    </div>
+                </div>
+          {% else %}
+                <em>No card to show.</em>
+          {% endfor %}
+        </div>
+    </div>
 
 {% endblock %}

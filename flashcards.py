@@ -75,7 +75,7 @@ def settings_save():
 @app.route('/')
 def index():
     if session.get('logged_in'):
-        return redirect(url_for('general'))
+        return redirect(url_for('categories'))
     else:
         return redirect(url_for('login'))
 
@@ -87,8 +87,8 @@ def categories():
 
     with get_db().cursor() as cursor:
         query = '''
-            SELECT id as cid, name, top, (
-                SELECT count(*) FROM cards WHERE category_id = cid) as count
+            SELECT user_id as uid, id as cid, name, top, (
+                SELECT count(*) FROM cards WHERE user_id = uid AND category_id = cid) as count
             FROM categories
             WHERE user_id=%s
             ORDER BY top DESC, update_time DESC
@@ -155,8 +155,8 @@ def category_top(category_id):
         return redirect(url_for('categories'))
 
 
-@app.route('/cards')
-def cards():
+@app.route('/cards/<category_id>')
+def cards(category_id):
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
@@ -164,10 +164,10 @@ def cards():
         query = '''
             SELECT id, category_id, front, back, known
             FROM cards
-            WHERE user_id = %s
+            WHERE category_id = %s AND user_id = %s
             ORDER BY id DESC
         '''
-        cursor.execute(query, [session['user_id']])
+        cursor.execute(query, [category_id, session['user_id']])
         cards = cursor.fetchall()
 
     return render_template('cards.html', cards=cards)

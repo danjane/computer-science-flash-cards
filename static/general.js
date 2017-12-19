@@ -108,6 +108,24 @@ $(document).ready(function(){
 
     $('.alert').show().delay(1500).fadeOut();
 
+    $('.carousel').on('swipeleft', function() {
+        $(this).carousel('next');
+    });
+
+    $('.carousel').on('swiperight', function() {
+        $(this).carousel('prev');
+    });
+i=0
+$('#carousel-slide').on('slid.bs.carousel', function () {
+  var carouselData = $(this).data('bs.carousel');
+/*  var currentIndex = carouselData.getActiveIndex();
+  var total = carouselData.$items.length;
+
+  var text = (currentIndex + 1) + " of " + total;*/
+value = carouselData.getItemIndex(carouselData.$element.find('.item.active')) + 1;
+  $('.slider-num').html(value);
+});
+
     // to remove the short delay on click on touch devices
     FastClick.attach(document.body);
 });
