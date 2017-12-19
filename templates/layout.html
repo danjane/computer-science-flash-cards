@@ -42,9 +42,7 @@
     {% endfor %}
 
     <div class="container">
-        <div class="row">
-            {% block body %}{% endblock %}
-        </div>
+        {% block body %}{% endblock %}
     </div>
 
     <script src="{{ url_for('static', filename='jquery-2.2.4.min.js') }}"></script>

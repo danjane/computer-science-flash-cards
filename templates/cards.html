@@ -1,29 +1,44 @@
 {% extends "layout.html" %}
 {% block body %}
 
-    <a href="{{ url_for('add')}}" class="btn btn-danger"><i class="fa fa-plus"></i> Add</a>
-
-    <div class="row">
-        <div class="col-sm-12 text-muted text-center">
+    <div class="row small">
+        <div class="col-xs-4 text-muted text-left">
             <span class="slider-num">1</span> / <span>{{ cards|length }}</span>
+        </div>
+        <div class="col-xs-8 text-right">
+            <a href="{{ url_for('add')}}" class="btn btn-xs btn-link"><i class="fa fa-plus"></i> Add</a>
+            <a href="{{ url_for('add')}}" class="btn btn-xs btn-link"><i class="fa fa-edit"></i> Edit</a>
         </div>
     </div>
 
-    <div id="carousel-slide" class="carousel slide"
-         data-ride="carousel"
-         data-interval="false"
-         data-wrap="false">
-        <div class="carousel-inner" role="listbox">
-          {% for index in range(cards|length) %}
-                <div class="item {{ 'active' if index == 0 else '' }}">
-                    <div class="text-danger" style="min-height: 200px;background: #ccc;">
-                        {{ cards[index].id }} === {{ cards[index].front }}
+    <br />
+
+    <div class="row">
+        <div id="carousel-slide" class="carousel slide col-xs-12"
+             data-ride="carousel"
+             data-interval="false"
+             data-wrap="false">
+            <div class="carousel-inner" role="listbox">
+              {% for index in range(cards|length) %}
+                    <div class="item{{ ' active' if index == 0 else '' }} item-id-{{ cards[index].id }}">
+                        <div class="text-danger" style="min-height: 200px;background: #ccc;">
+                            {{ cards[index].id }} === {{ cards[index].front }}
+                        </div>
                     </div>
-                </div>
-          {% else %}
-                <em>No card to show.</em>
-          {% endfor %}
+              {% else %}
+                    <em>No card to show.</em>
+              {% endfor %}
+            </div>
         </div>
+    </div>
+
+    <br />
+
+    <div class="row">
+        <div class="col-xs-12 text-center">
+            <a href="" class="text-muted" date-id="1"><i class="fa fa-check-circle-o"></i></a>
+        </div>
+
     </div>
 
 {% endblock %}
