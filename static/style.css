@@ -1,35 +1,6 @@
-.toggleSelected {
-    background-color: #62b06b;
-    color: #ffffff;
-}
-
 textarea {
     font-family: monospace;
 }
-
-.cardContent h4 {
-    margin-top: 0;
-}
-
-.alignContainer {
-    display: table;
-    width: 100%;
-}
-
-.alignMiddle {
-    height: 20em;
-    display: table-cell;
-    vertical-align: middle;
-}
-
-.cardBack {
-    display: none;
-}
-
-.largerText {
-    font-size: 2em;
-}
-
 
 .alert {
     display: none;
@@ -40,3 +11,35 @@ textarea {
     transform: translateX(-50%) translateY(-50%);
     z-index: 99999;
 }
+
+.carousel .item {
+    min-height: 15em;
+    border:1px solid #f8f8f8;
+    background-color: #f0f0f0;
+    overflow-y: auto;
+}
+
+.card-block {
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.back {
+    display: none;
+}
+
+.align-container {
+    display: table;
+    width: 100%;
+    height: 100%;
+}
+
+.align-middle {
+    display: table-cell;
+    vertical-align: middle;
+}
+

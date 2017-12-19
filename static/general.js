@@ -123,6 +123,20 @@ $(document).ready(function(){
         $('.slider-num').html(value);
     });
 
+    $('.carousel .item').on('click', function(){
+        var front = $(this).find('.front'),
+            back = $(this).find('.back');
+
+        if (front.is(":visible") === true) {
+            front.hide();
+            back.fadeIn();
+        } else {
+            back.hide();
+            front.fadeIn();
+
+        }
+    });
+
     // to remove the short delay on click on touch devices
     FastClick.attach(document.body);
 });
