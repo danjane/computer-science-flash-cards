@@ -73,7 +73,7 @@ def category_delete(category_id):
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    dao.delete_categories(category_id, session['user_id'])
+    dao.delete_category(category_id, session['user_id'])
     flash('Category deleted.')
 
     return redirect(url_for('categories'))

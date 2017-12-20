@@ -10,24 +10,48 @@ from werkzeug.security import generate_password_hash, \
     check_password_hash
 
 
-def get_db():
-    if not hasattr(g, 'mysql_db'):
+def config():
+    if not hasattr(g, 'config'):
         config_file = os.path.join(os.path.abspath(os.path.dirname(__file__)), '../config.ini')
 
-        config = ConfigParser()
-        if not config.read(config_file):
+        cp = ConfigParser()
+        if not cp.read(config_file):
             raise Exception('cannot found config.ini')
+        g.config = cp
 
+    return g.config
+
+
+def get_db():
+    if not hasattr(g, 'mysql_db'):
         g.mysql_db = pymysql.connect(
-            host=config.get('db', 'host'),
-            user=config.get('db', 'username'),
-            password=config.get('db', 'password'),
-            port=config.getint('db', 'port'),
-            db=config.get('db', 'dbname'),
-            charset=config.get('db', 'charset'),
+            host=config().get('db', 'host'),
+            user=config().get('db', 'username'),
+            password=config().get('db', 'password'),
+            port=config().getint('db', 'port'),
+            db=config().get('db', 'dbname'),
+            charset=config().get('db', 'charset'),
             cursorclass=pymysql.cursors.DictCursor
         )
     return g.mysql_db
+
+
+def encode_id(id):
+    hashids = Hashids(
+        min_length=config().get('safe', 'hashids_length'),
+        salt=config().get('safe', 'hashids_salt'),
+        alphabet=config().get('safe', 'hashids_alphabet')
+    )
+    return hashids.encode(id)
+
+
+def decode_id(hashid):
+    hashids = Hashids(
+        min_length=config().get('safe', 'hashids_length'),
+        salt=config().get('safe', 'hashids_salt'),
+        alphabet=config().get('safe', 'hashids_alphabet')
+    )
+    return hashids.decode(hashid)
 
 
 def get_user(user_id):
@@ -48,10 +72,11 @@ def get_categories(user_id):
             ORDER BY top DESC, update_time DESC
         '''
         cursor.execute(query, [user_id])
-        return cursor.fetchall()
+        return append_eid(cursor.fetchall(), 'cid')
 
 
-def delete_categories(category_id, user_id):
+def delete_category(category_id, user_id):
+    category_id = decode_id(category_id)
     with get_db().cursor() as cursor:
         cursor.execute('DELETE FROM categories WHERE id = %s AND user_id = %s', [category_id, user_id])
         get_db().commit()
@@ -60,6 +85,7 @@ def delete_categories(category_id, user_id):
 
 
 def top_category(category_id, user_id):
+    category_id = decode_id(category_id)
     with get_db().cursor() as cursor:
         cursor.execute('UPDATE categories SET top = 1-top WHERE id = %s AND user_id = %s', [
             category_id,
@@ -81,6 +107,7 @@ def get_card(card_id, user_id):
 
 
 def get_cards(category_id, user_id):
+    category_id = decode_id(category_id)
     with get_db().cursor() as cursor:
         query = '''
             SELECT id, category_id, front, back, known
@@ -89,7 +116,7 @@ def get_cards(category_id, user_id):
             ORDER BY id DESC
         '''
         cursor.execute(query, [category_id, user_id])
-        return cursor.fetchall()
+        return append_eid(cursor.fetchall())
 
 
 def add_card(form, user_id):
@@ -159,10 +186,11 @@ def add_category(form, user_id):
 
 
 def update_category(form, user_id):
+    category_id = decode_id(form['id'])
     with get_db().cursor() as cursor:
         cursor.execute('UPDATE categories SET name = %s WHERE id = %s AND user_id = %s', [
             form['name'],
-            form['id'],
+            category_id,
             user_id
         ])
         get_db().commit()
@@ -230,3 +258,13 @@ def update_settings(form, user_id):
     get_db().commit()
 
 
+def append_eid(values, column='id'):
+    """
+    :param values: 数据中读取出来的内容集合
+    :param column: 要加密的列，默认‘id’列
+    :return: 返回加密后的内容集合
+    """
+    for key, value in enumerate(values):
+        values[key]['eid'] = encode_id(value[column])
+
+    return values

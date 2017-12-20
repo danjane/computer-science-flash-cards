@@ -8,26 +8,25 @@
     </div>
 
     <br />
-
     <div class="row">
         <table class="table table-striped categoryPanel col-xs-12">
             {% for category in categories %}
                 <tr class="categoryItem">
                     <td class="categoryContent text-right">
-                        <a href="{{ url_for('cards', category_id=category.cid) }}" class="pull-left">
-                            <span class="hidden categoryId">{{ category.cid }}</span>
+                        <a href="{{ url_for('cards', category_id=category.eid) }}" class="pull-left">
+                            <span class="hidden categoryId">{{ category.eid }}</span>
                             <span class="categoryName">{{ category.name }}</span>
                             <span class="small text-muted">({{ category.count }})</span>
                         </a>
 
-                        <a href="{{ url_for('category_top', category_id=category.cid) }}" class="btn btn-xs btn-link topCategory">
+                        <a href="{{ url_for('category_top', category_id=category.eid) }}" class="btn btn-xs btn-link topCategory">
                             <i class="fa {{ 'fa-star' if category.top else 'fa-star-o' }}" aria-hidden="true"></i> Top
                         </a>
 
                         <button class="btn btn-xs btn-link editCategory">
                             <i class="fa fa-pencil" aria-hidden="true"></i> Edit
                         </button>
-                        <a href="#" data-href="{{ url_for('category_delete', category_id=category.cid) }}" class="btn btn-xs btn-link"
+                        <a href="#" data-href="{{ url_for('category_delete', category_id=category.eid) }}" class="btn btn-xs btn-link"
                             data-toggle="modal" data-target="#confirm-delete">
                             <i class="fa fa-trash" aria-hidden="true"></i> Delete
                         </a>
@@ -44,7 +43,7 @@
                     <td class="categoryContent text-right">
                         <form action="{{ url_for('category_save') }}" method="post">
                             <input type="hidden" class="categoryId" name="id" value="" />
-                            <input type="text" class="pull-left categoryName" name="name" placeholder="Category Name" required />
+                            <input type="text" class="pull-left categoryName" name="name" placeholder="Category Name" required maxlength="30"/>
                             <button type="submit" class="btn btn-xs btn-link">
                                 <i class="fa fa-check" aria-hidden="true"></i> Save
                             </button>
