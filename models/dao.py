@@ -3,6 +3,7 @@
 
 import pymysql
 import os
+from hashids import Hashids
 from configparser import ConfigParser
 from flask import g
 from werkzeug.security import generate_password_hash, \
@@ -67,6 +68,18 @@ def top_category(category_id, user_id):
         get_db().commit()
 
 
+def get_card(card_id, user_id):
+    with get_db().cursor() as cursor:
+        query = '''
+            SELECT id, category_id, front, back, known
+            FROM cards
+            WHERE id = %s AND user_id = %s
+            LIMIT 1
+        '''
+        cursor.execute(query, [card_id, user_id])
+        return cursor.fetchone()
+
+
 def get_cards(category_id, user_id):
     with get_db().cursor() as cursor:
         query = '''
@@ -90,7 +103,37 @@ def add_card(form, user_id):
         get_db().commit()
 
 
-def get_card_by_category_id(category_id, user_id):
+def update_card(form, user_id):
+    with get_db().cursor() as cursor:
+        command = '''
+            UPDATE cards
+            SET
+              category_id = %s,
+              front = %s,
+              back = %s,
+            WHERE id = %s
+            AND user_id = %s
+        '''
+        cursor.execute(
+            command,
+            [
+                form['category_id'],
+                form['front'],
+                form['back'],
+                form['card_id'],
+                user_id
+            ]
+        )
+        get_db().commit()
+
+
+def delete_card(card_id, user_id):
+    with get_db().cursor() as cursor:
+        cursor.execute('DELETE FROM cards WHERE id = %s AND user_id = %s', [card_id, user_id])
+        get_db().commit()
+
+
+def get_category(category_id, user_id):
     with get_db().cursor() as cursor:
         query = '''
           SELECT
@@ -106,18 +149,23 @@ def get_card_by_category_id(category_id, user_id):
         return cursor.fetchone()
 
 
-def get_card_by_id(card_id, user_id):
+def add_category(form, user_id):
     with get_db().cursor() as cursor:
-        query = '''
-          SELECT
-            id, category_id, front, back, known
-          FROM cards
-          WHERE id = %s AND user_id = %s
-          LIMIT 1
-        '''
+        cursor.execute('INSERT INTO categories (name, user_id) VALUES (%s, %s)', [
+            form['name'],
+            user_id
+        ])
+        get_db().commit()
 
-        cursor.execute(query, [card_id, user_id])
-        return cursor.fetchone()
+
+def update_category(form, user_id):
+    with get_db().cursor() as cursor:
+        cursor.execute('UPDATE categories SET name = %s WHERE id = %s AND user_id = %s', [
+            form['name'],
+            form['id'],
+            user_id
+        ])
+        get_db().commit()
 
 
 def mark_known(card_id, user_id):
@@ -158,4 +206,27 @@ def get_password(input_password):
 
 def check_password(store_password, input_password):
     return check_password_hash(store_password, input_password)
+
+
+def update_settings(form, user_id):
+    with get_db().cursor() as cursor:
+        if form['password']:
+            query = 'UPDATE users SET username = %s, email = %s, password = %s, display_mode = %s WHERE id = %s'
+            cursor.execute(query, [
+                form['username'],
+                form['email'],
+                get_password(form['password']),
+                form['display_mode'],
+                user_id
+            ])
+        else:
+            query = 'UPDATE users SET username = %s, email = %s, display_mode = %s WHERE id = %s'
+            cursor.execute(query, [
+                form['username'],
+                form['email'],
+                form['display_mode'],
+                user_id
+            ])
+    get_db().commit()
+
 

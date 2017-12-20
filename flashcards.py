@@ -1,33 +1,16 @@
-import pymysql
 from models import dao
-from hashids import Hashids
 from flask import Flask, request, session, g, redirect, url_for, abort, \
     render_template, flash
 
 
 app = Flask(__name__)
-app.config.from_object('config')
-
-
-def get_db():
-    if not hasattr(g, 'mysql_db'):
-        g.mysql_db = pymysql.connect(
-            host=app.config['DATABASE_HOST'],
-            user=app.config['DATABASE_USER'],
-            password=app.config['DATABASE_PASSWORD'],
-            port=app.config['DATABASE_PORT'],
-            db=app.config['DATABASE_NAME'],
-            charset=app.config['DATABASE_CHARSET'],
-            cursorclass=pymysql.cursors.DictCursor
-        )
-    return g.mysql_db
+app.debug = True
+app.config['SECRET_KEY'] = 'LJksd9u823j(*&*(23jU(Odlej09adsdfL'
 
 
 @app.teardown_appcontext
 def close_db(error):
-    """Closes the database again at the end of the request."""
-    if hasattr(g, 'mysql_db'):
-        g.mysql_db.close()
+    dao.get_db().close()
 
 
 @app.route('/settings')
@@ -46,26 +29,8 @@ def settings_save():
         return redirect(url_for('login'))
 
     if request.method == 'POST':
-        with get_db().cursor() as cursor:
-            if request.form['password']:
-                query = 'UPDATE users SET username = %s, email = %s, password = %s, display_mode = %s WHERE id = %s'
-                cursor.execute(query, [
-                    request.form['username'],
-                    request.form['email'],
-                    dao.get_password(request.form['password']),
-                    request.form['display_mode'],
-                    session['user_id']
-                ])
-            else:
-                query = 'UPDATE users SET username = %s, email = %s, display_mode = %s WHERE id = %s'
-                cursor.execute(query, [
-                    request.form['username'],
-                    request.form['email'],
-                    request.form['display_mode'],
-                    session['user_id']
-                ])
-            get_db().commit()
-            flash('Save successfully')
+        dao.update_settings(request.form, session['user_id'])
+        flash('Save successfully')
 
     return redirect(url_for('settings'))
 
@@ -88,29 +53,19 @@ def categories():
     return render_template('categories.html', categories=categories)
 
 
-@app.route('/category_post', methods=['POST'])
-def category_post():
+@app.route('/category_save', methods=['POST'])
+def category_save():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    category_id = int(request.form['id'])
+    if request.form['id']:
+        dao.update_category(request.form, session['user_id'])
+    else:
+        dao.add_category(request.form, session['user_id'])
 
-    with get_db().cursor() as cursor:
-        if category_id:
-            cursor.execute('UPDATE categories SET name = %s WHERE id = %s AND user_id = %s', [
-                request.form['name'],
-                category_id,
-                session['user_id']
-            ])
-        else:
-            cursor.execute('INSERT INTO categories (name, user_id) VALUES (%s, %s)', [
-                request.form['name'],
-                session['user_id']
-            ])
-        get_db().commit()
-        flash('Successfully')
+    flash('Successfully')
 
-        return redirect(url_for('categories'))
+    return redirect(url_for('categories'))
 
 
 @app.route('/category_delete/<category_id>')
@@ -158,11 +113,7 @@ def add_card():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    dao.add_card({
-        "category_id": request.form['category_id'],
-        "front": request.form['front'],
-        "back": request.form['back'],
-    }, session['user_id'])
+    dao.add_card(request.form, session['user_id'])
     flash('New card was successfully added.')
 
     return redirect(url_for('cards'))
@@ -173,14 +124,7 @@ def edit(card_id):
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    with get_db().cursor() as cursor:
-        query = '''
-            SELECT id, category_id, front, back, known
-            FROM cards
-            WHERE id = %s AND user_id = %s
-        '''
-        cursor.execute(query, [card_id, session['user_id']])
-        card = cursor.fetchone()
+    card = dao.get_card(card_id, session['user_id'])
 
     return render_template('edit.html', card=card)
 
@@ -190,35 +134,10 @@ def edit_card():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    selected = request.form.getlist('known')
-    known = bool(selected)
+    dao.update_card(request.form, session['user_id'])
+    flash('Card saved.')
 
-    with get_db().cursor() as cursor:
-        command = '''
-            UPDATE cards
-            SET
-              category_id = %s,
-              front = %s,
-              back = %s,
-              known = %s
-            WHERE id = %s
-            AND user_id = %s
-        '''
-        cursor.execute(
-            command,
-            [
-                request.form['category_id'],
-                request.form['front'],
-                request.form['back'],
-                known,
-                request.form['card_id'],
-                session['user_id']
-            ]
-        )
-        get_db().commit()
-        flash('Card saved.')
-
-        return redirect(url_for('edit', card_id=request.form['card_id']))
+    return redirect(url_for('edit', card_id=request.form['card_id']))
 
 
 @app.route('/delete/<card_id>')
@@ -226,10 +145,8 @@ def delete(card_id):
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    with get_db().cursor() as cursor:
-        cursor.execute('DELETE FROM cards WHERE id = %s AND user_id = %s', [card_id, session['user_id']])
-        get_db().commit()
-        flash('Card deleted.')
+    dao.delete_card(card_id, session['user_id'])
+    flash('Card deleted.')
 
     return redirect(url_for('cards'))
 
@@ -259,9 +176,9 @@ def memorize(category, card_id):
         return redirect(url_for('cards'))
 
     if card_id:
-        card = dao.get_card_by_id(card_id, session['user_id'])
+        card = dao.get_card(card_id, session['user_id'])
     else:
-        card = dao.get_card_by_category_id(category_id, session['user_id'])
+        card = dao.get_category(category_id, session['user_id'])
     if not card:
         flash("You've learned all the " + category + " cards.")
         return redirect(url_for('cards'))

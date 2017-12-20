@@ -42,8 +42,8 @@
             {% endfor %}
                 <tr class="hidden emptyCategory categoryItem">
                     <td class="categoryContent text-right">
-                        <form action="{{ url_for('category_post') }}" method="post">
-                            <input type="hidden" class="categoryId" name="id" value="0" />
+                        <form action="{{ url_for('category_save') }}" method="post">
+                            <input type="hidden" class="categoryId" name="id" value="" />
                             <input type="text" class="pull-left categoryName" name="name" placeholder="Category Name" required />
                             <button type="submit" class="btn btn-xs btn-link">
                                 <i class="fa fa-check" aria-hidden="true"></i> Save
