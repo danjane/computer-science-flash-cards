@@ -152,15 +152,15 @@ def card_save():
     return redirect(url_for('manage', category_id=request.form['category_id'], card_id=card_id))
 
 
-@app.route('/delete/<card_id>')
-def delete(card_id):
+@app.route('/delete/<category_id>/<card_id>')
+def delete(category_id, card_id):
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
     dao.delete_card(card_id, session['user_id'])
     flash('Card deleted.')
 
-    return redirect(url_for('cards'))
+    return redirect(url_for('category', category_id=category_id))
 
 
 @app.route('/mark_known/<card_id>/<card_type>')

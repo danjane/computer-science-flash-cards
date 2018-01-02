@@ -165,6 +165,7 @@ def update_card(form, user_id):
 
 
 def delete_card(card_id, user_id):
+    card_id = decode_id(card_id)
     with get_db().cursor() as cursor:
         cursor.execute('DELETE FROM cards WHERE id = %s AND user_id = %s', [card_id, user_id])
         get_db().commit()
