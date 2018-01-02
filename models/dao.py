@@ -45,13 +45,13 @@ def encode_id(id):
     return hashids.encode(id)
 
 
-def decode_id(hashid):
+def decode_id(hashstr):
     hashids = Hashids(
         min_length=config().get('safe', 'hashids_length'),
         salt=config().get('safe', 'hashids_salt'),
         alphabet=config().get('safe', 'hashids_alphabet')
     )
-    return hashids.decode(hashid)
+    return hashids.decode(hashstr)[0]
 
 
 def get_user(user_id):
@@ -72,7 +72,7 @@ def get_categories(user_id):
             ORDER BY top DESC, update_time DESC
         '''
         cursor.execute(query, [user_id])
-        return append_eid(cursor.fetchall(), 'cid')
+        return append_encode_id(cursor.fetchall(), 'cid')
 
 
 def delete_category(category_id, user_id):
@@ -95,6 +95,7 @@ def top_category(category_id, user_id):
 
 
 def get_card(card_id, user_id):
+    card_id = decode_id(card_id)
     with get_db().cursor() as cursor:
         query = '''
             SELECT id, category_id, front, back, known
@@ -103,7 +104,12 @@ def get_card(card_id, user_id):
             LIMIT 1
         '''
         cursor.execute(query, [card_id, user_id])
-        return cursor.fetchone()
+        card = cursor.fetchone()
+
+        if card:
+            card['category_eid'] = encode_id(card['category_id'])
+
+        return card
 
 
 def get_cards(category_id, user_id):
@@ -116,38 +122,42 @@ def get_cards(category_id, user_id):
             ORDER BY id DESC
         '''
         cursor.execute(query, [category_id, user_id])
-        return append_eid(cursor.fetchall())
+        return append_encode_id(cursor.fetchall())
 
 
 def add_card(form, user_id):
     with get_db().cursor() as cursor:
-        cursor.execute('INSERT INTO cards (category_id, front, back, user_id) VALUES (%s, %s, %s)', [
-            form['category_id'],
+        cursor.execute('INSERT INTO cards (category_id, front, back, user_id) VALUES (%s, %s, %s, %s)', [
+            decode_id(form['category_id']),
             form['front'],
             form['back'],
             user_id
         ])
         get_db().commit()
+        return encode_id(cursor.lastrowid)
 
 
 def update_card(form, user_id):
+    category_id = decode_id(form['category_id'])
+    card_id = decode_id(form['card_id'])
+
     with get_db().cursor() as cursor:
-        command = '''
+        query = '''
             UPDATE cards
             SET
               category_id = %s,
               front = %s,
-              back = %s,
+              back = %s
             WHERE id = %s
             AND user_id = %s
         '''
         cursor.execute(
-            command,
+            query,
             [
-                form['category_id'],
+                category_id,
                 form['front'],
                 form['back'],
-                form['card_id'],
+                card_id,
                 user_id
             ]
         )
@@ -158,22 +168,6 @@ def delete_card(card_id, user_id):
     with get_db().cursor() as cursor:
         cursor.execute('DELETE FROM cards WHERE id = %s AND user_id = %s', [card_id, user_id])
         get_db().commit()
-
-
-def get_category(category_id, user_id):
-    with get_db().cursor() as cursor:
-        query = '''
-          SELECT
-            id, category_id, front, back, known
-          FROM cards
-          WHERE
-            category_id = %s
-            AND user_id = %s
-            AND known = 0
-          LIMIT 1
-        '''
-        cursor.execute(query, [category_id, user_id])
-        return cursor.fetchone()
 
 
 def add_category(form, user_id):
@@ -258,7 +252,7 @@ def update_settings(form, user_id):
     get_db().commit()
 
 
-def append_eid(values, column='id'):
+def append_encode_id(values, column='id'):
     """
     :param values: 数据中读取出来的内容集合
     :param column: 要加密的列，默认‘id’列

@@ -63,6 +63,16 @@ def categories():
     return render_template('categories.html', categories=categories)
 
 
+@app.route('/category/<category_id>')
+def category(category_id):
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    cards = dao.get_cards(category_id, session['user_id'])
+
+    return render_template('category.html', cards=cards, category_id=category_id)
+
+
 @app.route('/category_save', methods=['POST'])
 def category_save():
     if not session.get('logged_in'):
@@ -110,44 +120,36 @@ def cards(category_id):
     return render_template('cards.html', cards=cards)
 
 
-@app.route('/add')
-def add():
+@app.route('/manage/<category_id>')
+@app.route('/manage/<category_id>/<card_id>')
+def manage(category_id, card_id=0):
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    return render_template('add.html')
+    categories = dao.get_categories(session['user_id'])
+
+    card = {}
+    if card_id:
+        card = dao.get_card(card_id, session['user_id'])
+        card['eid'] = card_id
+
+    return render_template('manage.html', card=card, category_id=category_id, categories=categories)
 
 
-@app.route('/add_card', methods=['POST'])
-def add_card():
+@app.route('/card_save', methods=['POST'])
+def card_save():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    dao.add_card(request.form, session['user_id'])
-    flash('New card was successfully added.')
+    if request.form['card_id']:
+        dao.update_card(request.form, session['user_id'])
+        card_id = request.form['card_id']
+        flash('Updated.')
+    else:
+        card_id = dao.add_card(request.form, session['user_id'])
+        flash('Added.')
 
-    return redirect(url_for('cards'))
-
-
-@app.route('/edit/<card_id>')
-def edit(card_id):
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
-
-    card = dao.get_card(card_id, session['user_id'])
-
-    return render_template('edit.html', card=card)
-
-
-@app.route('/edit_card', methods=['POST'])
-def edit_card():
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
-
-    dao.update_card(request.form, session['user_id'])
-    flash('Card saved.')
-
-    return redirect(url_for('edit', card_id=request.form['card_id']))
+    return redirect(url_for('manage', category_id=request.form['category_id'], card_id=card_id))
 
 
 @app.route('/delete/<card_id>')
@@ -159,44 +161,6 @@ def delete(card_id):
     flash('Card deleted.')
 
     return redirect(url_for('cards'))
-
-
-@app.route('/general')
-@app.route('/general/<card_id>')
-def general(card_id=None):
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
-    return memorize("general", card_id)
-
-
-@app.route('/code')
-@app.route('/code/<card_id>')
-def code(card_id=None):
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
-    return memorize("code", card_id)
-
-
-def memorize(category, card_id):
-    if category == "general":
-        category_id = 1
-    elif category == "code":
-        category_id = 2
-    else:
-        return redirect(url_for('cards'))
-
-    if card_id:
-        card = dao.get_card(card_id, session['user_id'])
-    else:
-        card = dao.get_category(category_id, session['user_id'])
-    if not card:
-        flash("You've learned all the " + category + " cards.")
-        return redirect(url_for('cards'))
-    short_answer = (len(card['back']) < 75)
-    return render_template('memorize.html',
-                           card=card,
-                           card_type=category,
-                           short_answer=short_answer)
 
 
 @app.route('/mark_known/<card_id>/<card_type>')

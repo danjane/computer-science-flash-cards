@@ -3,7 +3,7 @@
 
     <div class="row">
         <div class="col-xs-12 small">
-            <button class="btn btn-xs btn-link addCategory"><i class="fa fa-plus"></i> Add</button>
+            <button class="btn btn-xs btn-link addCategory"><i class="fa fa-plus"></i> Add Category</button>
         </div>
     </div>
 
@@ -13,7 +13,7 @@
             {% for category in categories %}
                 <tr class="categoryItem">
                     <td class="categoryContent text-right">
-                        <a href="{{ url_for('cards', category_id=category.eid) }}" class="pull-left">
+                        <a href="{{ url_for('category', category_id=category.eid) }}" class="pull-left">
                             <span class="hidden categoryId">{{ category.eid }}</span>
                             <span class="categoryName">{{ category.name }}</span>
                             <span class="small text-muted">({{ category.count }})</span>
