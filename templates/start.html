@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% block body %}
+
+    <div class="row">
+        <table class="table table-striped col-xs-12">
+            {% for category in categories %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('cards', category_id=category.eid) }}" class="w-1">
+                            <span>{{ category.name }}</span>
+                            <span class="small text-muted">({{ category.count }})</span>
+                        </a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td>
+                        <em>No Category to show.</em>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+{% endblock %}

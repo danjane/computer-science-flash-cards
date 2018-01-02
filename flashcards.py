@@ -1,6 +1,6 @@
 from models import dao
 from flask import Flask, request, session, g, redirect, url_for, abort, \
-    render_template, flash
+    render_template, flash, jsonify
 
 
 app = Flask(__name__)
@@ -38,12 +38,22 @@ def settings_save():
 @app.route('/')
 def index():
     if session.get('logged_in'):
-        return redirect(url_for('categories'))
+        return redirect(url_for('start'))
     else:
         return redirect(url_for('login'))
 
 
-@app.route('/categories', methods=['GET', 'POST'])
+@app.route('/start')
+def start():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    categories = dao.get_categories(session['user_id'])
+
+    return render_template('start.html', categories=categories)
+
+
+@app.route('/categories')
 def categories():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
@@ -256,6 +266,12 @@ def register():
             return redirect(url_for('cards'))
 
     return render_template('register.html', error=error)
+
+
+def ajax_response(message, data):
+    output = {"msg": message}
+    output.update(data)
+    jsonify(output)
 
 
 """如果直接运行本模块，则直接执行"""
