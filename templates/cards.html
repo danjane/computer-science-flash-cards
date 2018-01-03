@@ -1,55 +1,58 @@
 {% extends "layout.html" %}
 {% block body %}
-    <div class="row">
-        {% if (cards|length) != 0 %}
-            <div class="swiper-container col-xs-12">
 
+    {% if category_id and (cards|length) != 0 %}
+        <div class="row">
+            <div class="swiper-container col-xs-12">
                 <div class="swiper-wrapper">
-                  {% for index in range(cards|length) %}
-                        <div class="swiper-slide" data-id="{{ cards[index].eid }}">
+                  {% for card in cards %}
+                        <div class="swiper-slide" data-id="{{ card.eid }}" data-known="{{ card.known }}">
                             <div class="card-block front">
                                 <div class="align-container">
-                                    <h4 class="text-center align-middle">
-                                        {{ cards[index].front }}
+                                    <h4 class="text-center container align-middle">
+                                        {{ card.front }}
                                     </h4>
                                 </div>
                             </div>
-                            <div class="card-block back">
+                            <div class="card-block container back">
                                 <div class="align-container">
                                     <div class="text-left align-middle">
-                                        {{ cards[index].back }}
+                                        {{ card.back }}
                                     </div>
                                 </div>
                             </div>
                         </div>
                   {% endfor %}
                 </div>
-
-
             </div>
-        {% else %}
-            <div class="col-xs-12">
-                <em>No card to show.</em>
-            </div>
-        {% endif %}
-    </div>
-
-    <br />
-
-    {% if (cards|length) != 0 %}
-    <div class="row">
-        <div class="col-xs-6 text-left">
-            <form action="{{ url_for('mark_known') }}" method="post" class="mark-form">
-                <input type="hidden" class="mark-known" name="card_id" value="{{ cards[0].eid }}" />
-                <button type="submit" class="btn btn-default text-muted">
-                    <i class="fa fa-check-circle-o"></i> Known
-                </button>
-            </form>
         </div>
-        <div class="swiper-pagination"></div>
-    </div>
-    {% endif %}
 
-    <script src="{{ url_for('static', filename='swiper/js/swiper.min.js') }}"></script>
+        <br />
+
+        <div class="pagination-nav row">
+            <div class="col-xs-4 text-left">
+                <form action="{{ url_for('mark_known') }}" method="post" class="mark-form">
+                    <input type="hidden" class="mark-known" name="card_id" value="{{ cards[0].eid }}" />
+                    <button type="submit" class="known-button btn btn-link {{ 'btn-muted' if not cards[0].known else '' }}">
+                        <i class="fa fa-check-circle-o"></i> Known
+                    </button>
+                </form>
+            </div>
+            <div class="col-xs-4 text-center">
+                <div class="swiper-pagination"></div>
+            </div>
+            <div class="col-xs-4 text-right">
+                <a href="{{ url_for('manage', category_id=category_id, card_id=cards[0].eid) }}"
+                   data-url="{{ url_for('manage', category_id=category_id, card_id='') }}"
+                   class="btn btn-xs btn-link edit-link">
+                    <i class="fa fa-pencil" aria-hidden="true"></i> Edit
+                </a>
+            </div>
+        </div>
+    {% else %}
+        <div class="col-xs-12">
+            <em>No card to show.</em>
+        </div>
+    {% endif %}
 
 {% endblock %}

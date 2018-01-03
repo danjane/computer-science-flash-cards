@@ -7,7 +7,7 @@ textarea {
     position: fixed;
     top: 50%;
     left: 50%;
-    min-width: 120px;
+    min-width: 50px;
     transform: translateX(-50%) translateY(-50%);
     z-index: 99999;
 }
@@ -20,7 +20,22 @@ textarea {
     overflow-y: auto;
 }
 
+.swiper-pagination {
+    position: relative;
+    bottom: 0;
+}
+
+.pagination-nav {
+    display: block;
+}
+
+.swiper-pagination {
+    opacity: .5;
+    font-size: 0.85rem;
+}
+
 .card-block {
+    z-index: 100;
     display: block;
     position: absolute;
     left: 0;
@@ -42,5 +57,9 @@ textarea {
 .align-middle {
     display: table-cell;
     vertical-align: middle;
+}
+
+.btn-muted {
+    color: #777 !important;
 }
 

@@ -1,29 +1,4 @@
 $(document).ready(function(){
-    $('.mark-form').on('click', function(e) {
-        e.preventDefault();
-        var self = $(this);
-        var url = self.attr('action');
-
-        $.post(
-            url,
-            self.serialize(),
-            function (result) {
-                promptMsg(result.msg);
-            },
-            'json'
-        )
-    });
-
-    var promptMsg = function (message) {
-        $('<div>')
-            .appendTo('body')
-            .addClass('alert alert-success')
-            .html(message)
-            .show()
-            .delay(1500)
-            .fadeOut();
-    }
-
     var added = false;
     $('.addCategory').on('click', function(e) {
         e.preventDefault();
@@ -75,17 +50,6 @@ $(document).ready(function(){
 
     $('.alert').show().delay(1500).fadeOut();
 
-    $('#carousel-slide').on('slid.bs.carousel', function () {
-        var carouselData = $(this).data('bs.carousel');
-        var current = carouselData.$element.find('.item.active');
-
-        var value = carouselData.getItemIndex(current) + 1;
-        var id = current.attr('data-id');
-
-        $('.mark-known').val(id);
-        $('.slider-num').html(value);
-    });
-
     var mySwiper = new Swiper ('.swiper-container', {
         pagination: {
             el: '.swiper-pagination',
@@ -95,6 +59,7 @@ $(document).ready(function(){
         autoHeight: true,
         preventClicks: false,
         preventClicksPropagation: false,
+        hashNavigation: true,
         scrollbar: {
             el: '.swiper-scrollbar'
         }
@@ -114,6 +79,32 @@ $(document).ready(function(){
             back.style.display = 'none';
         }
     });
+
+    initInput(mySwiper.realIndex);
+    mySwiper.on('slideChange', function() {
+        initInput(mySwiper.realIndex);
+    });
+
+    function initInput(index) {
+        var swiper = mySwiper.slides[index];
+        var id = swiper.getAttribute('data-id');
+        var known = swiper.getAttribute('data-known');
+        var editLink = document.getElementsByClassName('edit-link')[0];
+        var knownButton = document.getElementsByClassName('known-button')[0];
+
+        document.getElementsByClassName('mark-known')[0].value = id;
+        editLink.href = editLink.getAttribute('data-url') + id;
+
+        var classVal = knownButton.getAttribute("class");
+        if (parseInt(known) === 1) {
+            classVal = classVal.replace(" btn-muted","");
+        } else {
+            classVal = classVal.replace(" btn-muted","");
+            classVal = classVal.concat(" btn-muted");
+        }
+        knownButton.setAttribute("class", classVal );
+    }
+
 
     var isVisible = function(elem) {
         return !(elem.offsetWidth <= 0 && elem.offsetHeight <= 0);

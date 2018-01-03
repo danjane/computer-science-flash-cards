@@ -1,12 +1,13 @@
 {% extends "layout.html" %}
 {% block body %}
 
+    {% if not category_id %}
     <div class="row">
         <table class="table table-striped col-xs-12">
             {% for category in categories %}
                 <tr>
                     <td>
-                        <a href="{{ url_for('cards', category_id=category.eid) }}" class="w-1">
+                        <a href="{{ url_for('start', category_id=category.eid) }}" class="w-1">
                             <span>{{ category.name }}</span>
                             <span class="small text-muted">({{ category.count }})</span>
                         </a>
@@ -21,5 +22,60 @@
             {% endfor %}
         </table>
     </div>
+    {% endif %}
+
+    {% if category_id and (cards|length) != 0 %}
+        <div class="row">
+            <div class="swiper-container col-xs-12">
+                <div class="swiper-wrapper">
+                  {% for card in cards %}
+                        <div class="swiper-slide" data-id="{{ card.eid }}" data-known="{{ card.known }}" data-hash="{{ card.eid }}">
+                            <div class="card-block front">
+                                <div class="align-container">
+                                    <h4 class="text-center container align-middle">
+                                        {{ card.front }}
+                                    </h4>
+                                </div>
+                            </div>
+                            <div class="card-block container back">
+                                <div class="align-container">
+                                    <div class="text-left align-middle">
+                                        {{ card.back }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                  {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <br />
+
+        <div class="pagination-nav row">
+            <div class="col-xs-4 text-left">
+                <form action="{{ url_for('mark_known') }}" method="post" class="mark-form">
+                    <input type="hidden" class="mark-known" name="card_id" value="{{ cards[0].eid }}" />
+                    <button type="submit" class="known-button btn btn-link {{ 'btn-muted' if not cards[0].known else '' }}">
+                        <i class="fa fa-check-circle-o"></i> Known
+                    </button>
+                </form>
+            </div>
+            <div class="col-xs-4 text-center">
+                <div class="swiper-pagination"></div>
+            </div>
+            <div class="col-xs-4 text-right">
+                <a href="{{ url_for('manage', category_id=category_id, card_id=cards[0].eid) }}"
+                   data-url="{{ url_for('manage', category_id=category_id, card_id='') }}"
+                   class="btn btn-xs btn-link edit-link">
+                    <i class="fa fa-pencil" aria-hidden="true"></i> Edit
+                </a>
+            </div>
+        </div>
+    {% elif category_id and (cards|length) == 0 %}
+        <div class="col-xs-12">
+            <em>No card to show.</em>
+        </div>
+    {% endif %}
 
 {% endblock %}

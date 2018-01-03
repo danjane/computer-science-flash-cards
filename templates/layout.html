@@ -30,8 +30,9 @@
                         <li><a href="{{ url_for('login') }}">Login</a></li>
                         <li><a href="{{ url_for('register') }}">Register</a></li>
                     {% else %}
-                        <li><a href="{{ url_for('index') }}"><i class="fa fa-caret-square-o-right"></i> Start</a></li>
+                        <li><a href="{{ url_for('start') }}"><i class="fa fa-caret-square-o-right"></i> Start</a></li>
                         <li><a href="{{ url_for('categories') }}"><i class="fa fa-bars"></i> Categories</a></li>
+                        <li><a href=""><i class="fa fa-bullseye"></i> Plans</a></li>
                         <li><a href="{{ url_for('settings') }}"><i class="fa fa-cog"></i> Settings</a></li>
                     {% endif %}
                 </ul>
@@ -50,6 +51,7 @@
     <script src="{{ url_for('static', filename='jquery-2.2.4.min.js') }}"></script>
     <script src="{{ url_for('static', filename='bootstrap.min.js') }}"></script>
     <script src="{{ url_for('static', filename='fastclick.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='swiper/js/swiper.min.js') }}"></script>
     <script src="{{ url_for('static', filename='general.js') }}"></script>
 </body>
 </html>

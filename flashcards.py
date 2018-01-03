@@ -43,16 +43,6 @@ def index():
         return redirect(url_for('login'))
 
 
-@app.route('/start')
-def start():
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
-
-    categories = dao.get_categories(session['user_id'])
-
-    return render_template('start.html', categories=categories)
-
-
 @app.route('/categories')
 def categories():
     if not session.get('logged_in'):
@@ -110,14 +100,20 @@ def category_top(category_id):
     return redirect(url_for('categories'))
 
 
-@app.route('/cards/<category_id>')
-def cards(category_id):
+@app.route('/start')
+@app.route('/start/<category_id>')
+def start(category_id=''):
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    cards = dao.get_cards(category_id, session['user_id'])
+    cards = categories = {}
 
-    return render_template('cards.html', cards=cards)
+    if category_id:
+        cards = dao.get_cards(category_id, session['user_id'])
+    else:
+        categories = dao.get_categories(session['user_id'])
+
+    return render_template('start.html', cards=cards, category_id=category_id, categories=categories)
 
 
 @app.route('/manage/<category_id>')
@@ -169,11 +165,12 @@ def mark_known():
         return redirect(url_for('login'))
 
     card_id = request.form['card_id']
+    card = dao.get_card(card_id, session['user_id'])
 
-    status = dao.mark_known(card_id, session['user_id'])
-    #flash('Card marked as known.')
+    dao.mark_known(card_id, session['user_id'])
+    flash('Changed.')
 
-    return ajax_response('Ok', {})
+    return redirect(url_for('start', category_id=card['category_eid'], _anchor=card_id))
 
 
 @app.route('/login', methods=['GET', 'POST'])
