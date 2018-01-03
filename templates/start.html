@@ -72,6 +72,8 @@
                 </a>
             </div>
         </div>
+        <script src="{{ url_for('static', filename='swiper/js/swiper.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='slider.js') }}"></script>
     {% elif category_id and (cards|length) == 0 %}
         <div class="col-xs-12">
             <em>No card to show.</em>
