@@ -168,7 +168,7 @@ def mark_known():
     card = dao.get_card(card_id, session['user_id'])
 
     dao.mark_known(card_id, session['user_id'])
-    flash('Changed.')
+    #flash('Changed.')
 
     return redirect(url_for('start', category_id=card['category_eid'], _anchor=card_id))
 
