@@ -1,39 +1,37 @@
 {% extends "layout.html" %}
 {% block body %}
     <div class="row">
-    {% if (cards|length) != 0 %}
-        <div id="carousel-slide"
-             class="carousel slide col-xs-12"
-             data-ride="carousel"
-             data-interval="false"
-             data-wrap="false">
+        {% if (cards|length) != 0 %}
+            <div class="swiper-container col-xs-12">
 
-            <div class="carousel-inner" role="listbox">
-              {% for index in range(cards|length) %}
-                    <div class="item{{ ' active' if index == 0 else '' }} item-id-{{ cards[index].eid }}">
-                        <div class="card-block front">
-                            <div class="align-container">
-                                <h4 class="text-center align-middle">
-                                    {{ cards[index].front }}
-                                </h4>
+                <div class="swiper-wrapper">
+                  {% for index in range(cards|length) %}
+                        <div class="swiper-slide" data-id="{{ cards[index].eid }}">
+                            <div class="card-block front">
+                                <div class="align-container">
+                                    <h4 class="text-center align-middle">
+                                        {{ cards[index].front }}
+                                    </h4>
+                                </div>
                             </div>
-                        </div>
-                        <div class="card-block container back">
-                            <div class="align-container">
-                                <div class="text-left align-middle">
-                                    {{ cards[index].back }}
+                            <div class="card-block back">
+                                <div class="align-container">
+                                    <div class="text-left align-middle">
+                                        {{ cards[index].back }}
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-              {% endfor %}
+                  {% endfor %}
+                </div>
+
+
             </div>
-    {% else %}
-        <div class="col-xs-12">
-            <em>No card to show.</em>
-        </div>
-    {% endif %}
-        </div>
+        {% else %}
+            <div class="col-xs-12">
+                <em>No card to show.</em>
+            </div>
+        {% endif %}
     </div>
 
     <br />
@@ -41,12 +39,17 @@
     {% if (cards|length) != 0 %}
     <div class="row">
         <div class="col-xs-6 text-left">
-            <a href="" class="text-muted" date-id="1"><i class="fa fa-check-circle-o"></i> Known</a>
+            <form action="{{ url_for('mark_known') }}" method="post" class="mark-form">
+                <input type="hidden" class="mark-known" name="card_id" value="{{ cards[0].eid }}" />
+                <button type="submit" class="btn btn-default text-muted">
+                    <i class="fa fa-check-circle-o"></i> Known
+                </button>
+            </form>
         </div>
-        <div class="col-xs-6 text-muted text-right">
-            <span class="slider-num">1</span> / <span>{{ cards|length }}</span>
-        </div>
+        <div class="swiper-pagination"></div>
     </div>
     {% endif %}
+
+    <script src="{{ url_for('static', filename='swiper/js/swiper.min.js') }}"></script>
 
 {% endblock %}

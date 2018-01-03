@@ -1,60 +1,27 @@
 $(document).ready(function(){
-    if ($('.memorizePanel').length != 0) {
+    $('.mark-form').on('click', function(e) {
+        e.preventDefault();
+        var self = $(this);
+        var url = self.attr('action');
 
-        $('.flipCard').click(function(){
-            if ($('.cardFront').is(":visible") == true) {
-                $('.cardFront').hide();
-                $('.cardBack').show();
-            } else {
-                $('.cardFront').show();
-                $('.cardBack').hide();
-            }
-        });
-    }
+        $.post(
+            url,
+            self.serialize(),
+            function (result) {
+                promptMsg(result.msg);
+            },
+            'json'
+        )
+    });
 
-    if ($('.cardForm').length != 0) {
-
-        $('.cardForm').submit(function(){
-
-            var frontTrim = $.trim($('#front').val());
-            $('#front').val(frontTrim);
-            var backTrim = $.trim($('#back').val());
-            $('#back').val(backTrim);
-
-            if (! $('#front').val() || ! $('#back').val()) {
-                return false;
-            }
-        });
-    }
-
-    if ($('.editPanel').length != 0) {
-
-        function checkit() {
-            var checkedVal = $('input[name=category_id]:checked').val();
-            if (checkedVal === undefined) {
-                // hide the fields
-                $('.fieldFront').hide();
-                $('.fieldBack').hide();
-                $('.saveButton').hide();
-            } else {
-                $('.toggleButton').removeClass('toggleSelected');
-                $(this).addClass('toggleSelected');
-
-                if (checkedVal == '1') {
-                    $('textarea[name=back]').attr('rows', 5);
-                } else {
-                    $('textarea[name=back]').attr('rows', 12);
-                }
-
-                $('.fieldFront').show();
-                $('.fieldBack').show();
-                $('.saveButton').show();
-            }
-        }
-
-        $('.toggleButton').click(checkit);
-
-        checkit();
+    var promptMsg = function (message) {
+        $('<div>')
+            .appendTo('body')
+            .addClass('alert alert-success')
+            .html(message)
+            .show()
+            .delay(1500)
+            .fadeOut();
     }
 
     var added = false;
@@ -108,34 +75,49 @@ $(document).ready(function(){
 
     $('.alert').show().delay(1500).fadeOut();
 
-    $('.carousel').on('swipeleft', function() {
-        $(this).carousel('next');
-    });
-
-    $('.carousel').on('swiperight', function() {
-        $(this).carousel('prev');
-    });
-
     $('#carousel-slide').on('slid.bs.carousel', function () {
         var carouselData = $(this).data('bs.carousel');
-        value = carouselData.getItemIndex(carouselData.$element.find('.item.active')) + 1;
+        var current = carouselData.$element.find('.item.active');
 
+        var value = carouselData.getItemIndex(current) + 1;
+        var id = current.attr('data-id');
+
+        $('.mark-known').val(id);
         $('.slider-num').html(value);
     });
 
-    $('.carousel .item').on('click', function(){
-        var front = $(this).find('.front'),
-            back = $(this).find('.back');
-
-        if (front.is(":visible") === true) {
-            front.hide();
-            back.fadeIn();
-        } else {
-            back.hide();
-            front.fadeIn();
-
+    var mySwiper = new Swiper ('.swiper-container', {
+        pagination: {
+            el: '.swiper-pagination',
+            type: 'fraction'
+        },
+        speed: 200,
+        autoHeight: true,
+        preventClicks: false,
+        preventClicksPropagation: false,
+        scrollbar: {
+            el: '.swiper-scrollbar'
         }
     });
+
+    mySwiper.on('click', function() {
+        var self = mySwiper.slides[mySwiper.realIndex];
+
+        var front = self.getElementsByClassName("front")[0];
+        var back = self.getElementsByClassName("back")[0];
+
+        if (isVisible(front)) {
+            front.style.display = 'none';
+            back.style.display = 'block';
+        } else {
+            front.style.display = 'block';
+            back.style.display = 'none';
+        }
+    });
+
+    var isVisible = function(elem) {
+        return !(elem.offsetWidth <= 0 && elem.offsetHeight <= 0);
+    };
 
     // to remove the short delay on click on touch devices
     FastClick.attach(document.body);

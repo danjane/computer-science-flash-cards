@@ -163,15 +163,17 @@ def delete(category_id, card_id):
     return redirect(url_for('category', category_id=category_id))
 
 
-@app.route('/mark_known/<card_id>/<card_type>')
-def mark_known(card_id, card_type):
+@app.route('/mark_known', methods=['POST'])
+def mark_known():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    dao.mark_known(card_id, session['user_id'])
-    flash('Card marked as known.')
+    card_id = request.form['card_id']
 
-    return redirect(url_for(card_type))
+    status = dao.mark_known(card_id, session['user_id'])
+    #flash('Card marked as known.')
+
+    return ajax_response('Ok', {})
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -235,7 +237,7 @@ def register():
 def ajax_response(message, data):
     output = {"msg": message}
     output.update(data)
-    jsonify(output)
+    return jsonify(output)
 
 
 """如果直接运行本模块，则直接执行"""

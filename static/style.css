@@ -12,10 +12,11 @@ textarea {
     z-index: 99999;
 }
 
-.carousel .item {
-    min-height: 15em;
+.swiper-slide {
+    min-height: 20rem;
     border:1px solid #f8f8f8;
     background-color: #f0f0f0;
+    overflow-x: hidden;
     overflow-y: auto;
 }
 

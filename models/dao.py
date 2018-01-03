@@ -192,9 +192,12 @@ def update_category(form, user_id):
 
 
 def mark_known(card_id, user_id):
+    card_id = decode_id(card_id)
     with get_db() as cursor:
-        cursor.execute('UPDATE cards SET known = 1 WHERE id = %s AND user_id = %s', [card_id, user_id])
+        cursor.execute('UPDATE cards SET known = 1 - known WHERE id = %s AND user_id = %s', [card_id, user_id])
         get_db().commit()
+
+        return cursor.rowcount
 
 
 def get_user_by_email(email):
