@@ -22,9 +22,9 @@ $(document).ready(function() {
         var planTitle = planItem.children('.plan-title');
         var currentValue = parentLi.find('.plan-check').val().split('/').slice(-2, -1)[0];
 
-        editPlan(planTitle);
-        planSave();
         showOperation(planItem);
+        editPlan(planTitle);
+        planSave(planTitle);
         addPlan(currentValue, parentLi);
         removePlan(currentValue, parentLi);
 
@@ -168,43 +168,50 @@ $(document).ready(function() {
         )
     });
 
-/*    $('.plan-title').on('click', function() {
-        editPlan($(this));
-    });*/
-
     /**
      * 显示编辑form
      * @param planTitle .plan-title对象
      */
     var editPlan = function(planTitle) {
-        var url = planTitle.data('url'),
-            value= planTitle.html();
-
-        var form = $('<input name="title" class="plan-title-value" value="' + value + '" />');
+        var value= planTitle.html();
+        var input = $('<input name="title" class="plan-title-value" value="' + value + '" />');
 
         resetTitleForm();
         planTitle.hide();
-        planTitle.before(form);
+        planTitle.before(input);
     };
 
     /**
      * 保存编辑内容
      */
-    var planSave = function() {
-        $('.plan-save').on('click mouseover', function(event) {
+    var planSave = function(planTitle) {
+        $('.plan-save').on('click', function(event) {
             event.stopPropagation();
-            console.log('dsdsl');
-/*            $.post(
+
+            var url = planTitle.data('url');
+            var value = planTitle.prev('.plan-title-value').val();
+
+            if (value == planTitle.html()) {
+                promptMsg('Nothing to save.', true);
+                return;
+            }
+
+            $.post(
                 url,
-                {title: $('.plan-title-value').val()},
-                function (restult) {
-                    console.log('result')
+                {title: value},
+                function (result) {
+                    if (result.status) {
+                        promptMsg('Success.');
+                        planTitle.html(value);
+                        resetTitleForm();
+                    } else {
+                        promptMsg('Failed.', true);
+                    }
                 },
                 'json'
-            );*/
+            ).fail(function() { promptMsg('Failed.', true); });
         });
     };
-    planSave();
 
 
     /**

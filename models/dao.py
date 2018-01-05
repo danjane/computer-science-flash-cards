@@ -286,9 +286,9 @@ def plans_add(parent_ids, titles):
 
 
 def plan_update(form):
-    plan_id = decode_id(form['id'])
+    plan_id = decode_id(form['plan_id'])
     with get_db().cursor() as cursor:
-        cursor.execute('UPDATE planse SET title = %s WHERE id = %s AND user_id = %s', [
+        cursor.execute('UPDATE plans SET title = %s WHERE id = %s AND user_id = %s', [
             form['title'],
             plan_id,
             user_id()

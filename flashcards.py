@@ -214,7 +214,7 @@ def render_plans(plans):
     return html
 
 
-@app.route('/plan_save/<plan_id>')
+@app.route('/plan_save/<plan_id>', methods=['POST'])
 def plan_save(plan_id):
     form = {"title": request.form['title'], "plan_id": plan_id}
     result = dao.plan_update(form)
