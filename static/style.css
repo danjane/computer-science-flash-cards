@@ -90,9 +90,16 @@ textarea {
     display: inline;
     font-weight: 500;
     font-size: 85%;
-
 }
 
-.plan-item .text-button {
-    cursor: pointer;
+.plan-list form{
+    display: inline-block;
+}
+
+.plan-list .normal-text {
+    resize: none;
+    overflow: hidden;
+    height: 2rem;
+    border: none;
+    background: transparent;
 }

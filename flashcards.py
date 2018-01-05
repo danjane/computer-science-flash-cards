@@ -196,12 +196,15 @@ def create_tree(parent, plans):
 def render_plans(plans):
     html = '<ul>'
     for plan in plans:
-        url = url_for('plan_check', plan_id=plan['eid'], finish='')
-        checked = 'checked' if plan['finish'] else ''
+        check_url = url_for('plan_check', plan_id=plan['eid'], finish='')
+        save_url = url_for('plan_save', plan_id=plan['eid'])
+        checked = ' checked' if plan['finish'] else ''
 
-        html += '<li><div class="plan-item"><label>'
-        html += '<input type="checkbox" class="plan-check" ' + checked + ' name=plan[] value="' + url + '" />' + plan['title']
-        html += '</label></div>'
+        html += '<li><div class="plan-item">'
+        html += '<label><input type="checkbox" class="plan-check"{} name=plan[] value="{}" /></label> '\
+                .format(checked, check_url)
+        html += '<span class="plan-title" data-url="{}">{}</span>'.format(save_url, plan['title'])
+        html += '</div>'
         if plan['children']:
             html += render_plans(plan['children'])
         html += '</li>'
@@ -209,6 +212,14 @@ def render_plans(plans):
     html += '</ul>'
 
     return html
+
+
+@app.route('/plan_save/<plan_id>')
+def plan_save(plan_id):
+    form = {"title": request.form['title'], "plan_id": plan_id}
+    result = dao.plan_update(form)
+
+    return ajax_response({"status": result})
 
 
 @app.route('/plan_add', methods=['POST'])

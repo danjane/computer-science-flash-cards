@@ -285,6 +285,19 @@ def plans_add(parent_ids, titles):
         return cursor.rowcount
 
 
+def plan_update(form):
+    plan_id = decode_id(form['id'])
+    with get_db().cursor() as cursor:
+        cursor.execute('UPDATE planse SET title = %s WHERE id = %s AND user_id = %s', [
+            form['title'],
+            plan_id,
+            user_id()
+        ])
+        get_db().commit()
+
+        return cursor.rowcount
+
+
 def plan_delete(plan_id):
     plan_id = decode_id(plan_id)
     with get_db().cursor() as cursor:

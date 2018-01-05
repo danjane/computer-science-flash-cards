@@ -7,6 +7,8 @@
             {{ plans }}
         {% endautoescape %}
 
+        <script src="{{ url_for('static', filename='plans.js') }}"></script>
+
         <div class="hidden submit-add col-xs-12 text-center">
             <button type="button" class="btn btn-primary submit-add-plan" data-url="{{ url_for('plan_add') }}">
                 Submit Add

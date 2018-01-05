@@ -8,6 +8,7 @@
     <link rel="stylesheet" type=text/css  href="{{ url_for('static', filename='swiper/css/swiper.min.css') }}">
     <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}"/>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='highlight-theme-github.css') }}" />
+    <script src="{{ url_for('static', filename='jquery-2.2.4.min.js') }}"></script>
     <script src="{{ url_for('static', filename='highlight.pack.js') }}"></script>
 </head>
 <body>
@@ -48,7 +49,6 @@
         {% block body %}{% endblock %}
     </div>
 
-    <script src="{{ url_for('static', filename='jquery-2.2.4.min.js') }}"></script>
     <script src="{{ url_for('static', filename='bootstrap.min.js') }}"></script>
     <script src="{{ url_for('static', filename='fastclick.min.js') }}"></script>
     <script src="{{ url_for('static', filename='general.js') }}"></script>
