@@ -18,7 +18,7 @@ def settings():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    user = dao.get_user(session['user_id'])
+    user = dao.get_user()
 
     return render_template('settings.html', user=user)
 
@@ -29,7 +29,7 @@ def settings_save():
         return redirect(url_for('login'))
 
     if request.method == 'POST':
-        dao.update_settings(request.form, session['user_id'])
+        dao.update_settings(request.form)
         flash('Save successfully')
 
     return redirect(url_for('settings'))
@@ -48,7 +48,7 @@ def categories():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    categories = dao.get_categories(session['user_id'])
+    categories = dao.get_categories()
 
     return render_template('categories.html', categories=categories)
 
@@ -58,7 +58,7 @@ def category(category_id):
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    cards = dao.get_cards(category_id, session['user_id'])
+    cards = dao.get_cards(category_id)
 
     return render_template('category.html', cards=cards, category_id=category_id)
 
@@ -69,9 +69,9 @@ def category_save():
         return redirect(url_for('login'))
 
     if request.form['id']:
-        dao.update_category(request.form, session['user_id'])
+        dao.update_category(request.form)
     else:
-        dao.add_category(request.form, session['user_id'])
+        dao.add_category(request.form)
 
     flash('Successfully')
 
@@ -83,7 +83,7 @@ def category_delete(category_id):
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    dao.delete_category(category_id, session['user_id'])
+    dao.delete_category(category_id)
     flash('Category deleted.')
 
     return redirect(url_for('categories'))
@@ -94,7 +94,7 @@ def category_top(category_id):
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    dao.top_category(category_id, session['user_id'])
+    dao.top_category(category_id)
     flash('Successfully')
 
     return redirect(url_for('categories'))
@@ -109,9 +109,9 @@ def start(category_id=''):
     cards = categories = {}
 
     if category_id:
-        cards = dao.get_cards(category_id, session['user_id'])
+        cards = dao.get_cards(category_id)
     else:
-        categories = dao.get_categories(session['user_id'])
+        categories = dao.get_categories()
 
     return render_template('start.html', cards=cards, category_id=category_id, categories=categories)
 
@@ -122,11 +122,11 @@ def manage(category_id, card_id=0):
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    categories = dao.get_categories(session['user_id'])
+    categories = dao.get_categories()
 
     card = {}
     if card_id:
-        card = dao.get_card(card_id, session['user_id'])
+        card = dao.get_card(card_id)
         card['eid'] = card_id
 
     return render_template('manage.html', card=card, category_id=category_id, categories=categories)
@@ -138,11 +138,11 @@ def card_save():
         return redirect(url_for('login'))
 
     if request.form['card_id']:
-        dao.update_card(request.form, session['user_id'])
+        dao.update_card(request.form)
         card_id = request.form['card_id']
         flash('Updated.')
     else:
-        card_id = dao.add_card(request.form, session['user_id'])
+        card_id = dao.add_card(request.form)
         flash('Added.')
 
     return redirect(url_for('manage', category_id=request.form['category_id'], card_id=card_id))
@@ -153,7 +153,7 @@ def delete(category_id, card_id):
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    dao.delete_card(card_id, session['user_id'])
+    dao.delete_card(card_id)
     flash('Card deleted.')
 
     return redirect(url_for('category', category_id=category_id))
@@ -165,9 +165,9 @@ def mark_known():
         return redirect(url_for('login'))
 
     card_id = request.form['card_id']
-    card = dao.get_card(card_id, session['user_id'])
+    card = dao.get_card(card_id)
 
-    dao.mark_known(card_id, session['user_id'])
+    dao.mark_known(card_id)
     #flash('Changed.')
 
     return redirect(url_for('start', category_id=card['category_eid'], _anchor=card_id))
@@ -175,7 +175,7 @@ def mark_known():
 
 @app.route('/plans')
 def plans():
-    plans = dao.get_plans(session['user_id'])
+    plans = dao.get_plans()
 
     tree = []
     for item in plans:
@@ -216,7 +216,7 @@ def render_plans(plans):
 def plan_add():
     parent_ids = request.form.getlist('parent_ids[]')
     titles = request.form.getlist('titles[]')
-    dao.add_plans(parent_ids, titles, session['user_id'])
+    dao.add_plans(parent_ids, titles)
 
     flash('更新成功')
     return redirect(url_for('plans'))
@@ -225,11 +225,11 @@ def plan_add():
 @app.route('/plan_check/<plan_id>/<finish>')
 def plan_check(plan_id, finish):
     form = {"id": plan_id, 'finish': finish}
-    result = dao.update_plans_status(form, session['user_id'])
+    result = dao.update_plans_status(form)
     if result:
         return ajax_response('更新成功', {"finish": finish})
     else:
-        finish = dao.get_plan_finish(plan_id, session['user_id'])
+        finish = dao.get_plan_finish(plan_id)
         return ajax_response('更新失败', {"finish": finish})
 
 

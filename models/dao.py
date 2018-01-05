@@ -36,6 +36,14 @@ def get_db():
     return g.mysql_db
 
 
+def user_id():
+    try:
+        if session['user_id']:
+            return session['user_id']
+    except NameError:
+        print("You did not sign in.")
+
+
 def encode_id(id):
     hashids = Hashids(
         min_length=config().get('safe', 'hashids_length'),
@@ -54,15 +62,15 @@ def decode_id(hashstr):
     return hashids.decode(hashstr)[0]
 
 
-def get_user(user_id):
+def get_user():
     with get_db().cursor() as cursor:
         query = 'SELECT username, email, display_mode FROM users where id = %s LIMIT 1'
-        cursor.execute(query, user_id)
+        cursor.execute(query, user_id())
 
     return cursor.fetchone()
 
 
-def get_categories(user_id):
+def get_categories():
     with get_db().cursor() as cursor:
         query = '''
             SELECT user_id as uid, id as cid, name, top, (
@@ -71,30 +79,30 @@ def get_categories(user_id):
             WHERE user_id=%s
             ORDER BY top DESC, update_time DESC
         '''
-        cursor.execute(query, [user_id])
+        cursor.execute(query, [user_id()])
         return append_encode_id(cursor.fetchall(), 'cid')
 
 
-def delete_category(category_id, user_id):
+def delete_category(category_id):
     category_id = decode_id(category_id)
     with get_db().cursor() as cursor:
-        cursor.execute('DELETE FROM categories WHERE id = %s AND user_id = %s', [category_id, user_id])
+        cursor.execute('DELETE FROM categories WHERE id = %s AND user_id = %s', [category_id, user_id()])
         get_db().commit()
-        cursor.execute('DELETE FROM cards WHERE category_id = %s AND user_id = %s', [category_id, user_id])
+        cursor.execute('DELETE FROM cards WHERE category_id = %s AND user_id = %s', [category_id, user_id()])
         get_db().commit()
 
 
-def top_category(category_id, user_id):
+def top_category(category_id):
     category_id = decode_id(category_id)
     with get_db().cursor() as cursor:
         cursor.execute('UPDATE categories SET top = 1-top WHERE id = %s AND user_id = %s', [
             category_id,
-            user_id
+            user_id()
         ])
         get_db().commit()
 
 
-def get_card(card_id, user_id):
+def get_card(card_id):
     card_id = decode_id(card_id)
     with get_db().cursor() as cursor:
         query = '''
@@ -103,7 +111,7 @@ def get_card(card_id, user_id):
             WHERE id = %s AND user_id = %s
             LIMIT 1
         '''
-        cursor.execute(query, [card_id, user_id])
+        cursor.execute(query, [card_id, user_id()])
         card = cursor.fetchone()
 
         if card:
@@ -112,7 +120,7 @@ def get_card(card_id, user_id):
         return card
 
 
-def get_cards(category_id, user_id):
+def get_cards(category_id):
     category_id = decode_id(category_id)
     with get_db().cursor() as cursor:
         query = '''
@@ -121,23 +129,23 @@ def get_cards(category_id, user_id):
             WHERE category_id = %s AND user_id = %s
             ORDER BY id DESC
         '''
-        cursor.execute(query, [category_id, user_id])
+        cursor.execute(query, [category_id, user_id()])
         return append_encode_id(cursor.fetchall())
 
 
-def add_card(form, user_id):
+def add_card(form):
     with get_db().cursor() as cursor:
         cursor.execute('INSERT INTO cards (category_id, front, back, user_id) VALUES (%s, %s, %s, %s)', [
             decode_id(form['category_id']),
             form['front'],
             form['back'],
-            user_id
+            user_id()
         ])
         get_db().commit()
         return encode_id(cursor.lastrowid)
 
 
-def update_card(form, user_id):
+def update_card(form):
     category_id = decode_id(form['category_id'])
     card_id = decode_id(form['card_id'])
 
@@ -158,43 +166,43 @@ def update_card(form, user_id):
                 form['front'],
                 form['back'],
                 card_id,
-                user_id
+                user_id()
             ]
         )
         get_db().commit()
 
 
-def delete_card(card_id, user_id):
+def delete_card(card_id):
     card_id = decode_id(card_id)
     with get_db().cursor() as cursor:
-        cursor.execute('DELETE FROM cards WHERE id = %s AND user_id = %s', [card_id, user_id])
+        cursor.execute('DELETE FROM cards WHERE id = %s AND user_id = %s', [card_id, user_id()])
         get_db().commit()
 
 
-def add_category(form, user_id):
+def add_category(form):
     with get_db().cursor() as cursor:
         cursor.execute('INSERT INTO categories (name, user_id) VALUES (%s, %s)', [
             form['name'],
-            user_id
+            user_id()
         ])
         get_db().commit()
 
 
-def update_category(form, user_id):
+def update_category(form):
     category_id = decode_id(form['id'])
     with get_db().cursor() as cursor:
         cursor.execute('UPDATE categories SET name = %s WHERE id = %s AND user_id = %s', [
             form['name'],
             category_id,
-            user_id
+            user_id()
         ])
         get_db().commit()
 
 
-def mark_known(card_id, user_id):
+def mark_known(card_id):
     card_id = decode_id(card_id)
     with get_db() as cursor:
-        cursor.execute('UPDATE cards SET known = 1 - known WHERE id = %s AND user_id = %s', [card_id, user_id])
+        cursor.execute('UPDATE cards SET known = 1 - known WHERE id = %s AND user_id = %s', [card_id, user_id()])
         get_db().commit()
 
         return cursor.rowcount
@@ -234,7 +242,7 @@ def check_password(store_password, input_password):
     return check_password_hash(store_password, input_password)
 
 
-def update_settings(form, user_id):
+def update_settings(form):
     with get_db().cursor() as cursor:
         if form['password']:
             query = 'UPDATE users SET username = %s, email = %s, password = %s, display_mode = %s WHERE id = %s'
@@ -243,7 +251,7 @@ def update_settings(form, user_id):
                 form['email'],
                 get_password(form['password']),
                 form['display_mode'],
-                user_id
+                user_id()
             ])
         else:
             query = 'UPDATE users SET username = %s, email = %s, display_mode = %s WHERE id = %s'
@@ -251,22 +259,22 @@ def update_settings(form, user_id):
                 form['username'],
                 form['email'],
                 form['display_mode'],
-                user_id
+                user_id()
             ])
     get_db().commit()
 
 
-def get_plans(user_id):
+def get_plans():
     with get_db().cursor() as cursor:
         query = 'SELECT id, parent_id, title, finish FROM plans WHERE user_id = %s'
-        cursor.execute(query, [user_id])
+        cursor.execute(query, [user_id()])
         plans = cursor.fetchall()
         return append_encode_id(plans)
 
 
-def add_plans(parent_ids, titles, user_id):
+def add_plans(parent_ids, titles):
     parent_ids = list(map(decode_id, parent_ids))
-    user_ids = [user_id] * len(parent_ids)
+    user_ids = [user_id()] * len(parent_ids)
     values = list(zip(titles, parent_ids, user_ids))
 
     with get_db().cursor() as cursor:
@@ -275,23 +283,23 @@ def add_plans(parent_ids, titles, user_id):
         get_db().commit()
 
 
-def update_plans_status(form, user_id):
+def update_plans_status(form):
     plan_id = decode_id(form['id'])
     with get_db().cursor() as cursor:
         cursor.execute('UPDATE plans SET finish = %s WHERE id = %s AND user_id = %s', [
             form['finish'],
             plan_id,
-            user_id
+            user_id()
         ])
         get_db().commit()
         return cursor.rowcount
 
 
-def get_plan_finish(plan_id, user_id):
+def get_plan_finish(plan_id):
     id = decode_id(plan_id)
     with get_db().cursor() as cursor:
         query = 'SELECT finish FROM plans WHERE id = %s AND user_id = %s'
-        cursor.execute(query, [id, user_id])
+        cursor.execute(query, [id, user_id()])
         plan = cursor.fetchone()
         return plan['finish']
 
