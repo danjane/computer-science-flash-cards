@@ -5,7 +5,7 @@ import pymysql
 import os
 from hashids import Hashids
 from configparser import ConfigParser
-from flask import g
+from flask import g, session
 from werkzeug.security import generate_password_hash, \
     check_password_hash
 
@@ -254,6 +254,46 @@ def update_settings(form, user_id):
                 user_id
             ])
     get_db().commit()
+
+
+def get_plans(user_id):
+    with get_db().cursor() as cursor:
+        query = 'SELECT id, parent_id, title, finish FROM plans WHERE user_id = %s'
+        cursor.execute(query, [user_id])
+        plans = cursor.fetchall()
+        return append_encode_id(plans)
+
+
+def add_plans(parent_ids, titles, user_id):
+    parent_ids = list(map(decode_id, parent_ids))
+    user_ids = [user_id] * len(parent_ids)
+    values = list(zip(titles, parent_ids, user_ids))
+
+    with get_db().cursor() as cursor:
+        query = 'INSERT INTO plans (title, parent_id, user_id) VALUES (%s, %s, %s)'
+        cursor.executemany(query, values)
+        get_db().commit()
+
+
+def update_plans_status(form, user_id):
+    plan_id = decode_id(form['id'])
+    with get_db().cursor() as cursor:
+        cursor.execute('UPDATE plans SET finish = %s WHERE id = %s AND user_id = %s', [
+            form['finish'],
+            plan_id,
+            user_id
+        ])
+        get_db().commit()
+        return cursor.rowcount
+
+
+def get_plan_finish(plan_id, user_id):
+    id = decode_id(plan_id)
+    with get_db().cursor() as cursor:
+        query = 'SELECT finish FROM plans WHERE id = %s AND user_id = %s'
+        cursor.execute(query, [id, user_id])
+        plan = cursor.fetchone()
+        return plan['finish']
 
 
 def append_encode_id(values, column='id'):

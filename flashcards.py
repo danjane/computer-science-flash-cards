@@ -173,6 +173,66 @@ def mark_known():
     return redirect(url_for('start', category_id=card['category_eid'], _anchor=card_id))
 
 
+@app.route('/plans')
+def plans():
+    plans = dao.get_plans(session['user_id'])
+
+    tree = []
+    for item in plans:
+        if not item['parent_id']:
+            tree.append(create_tree(item, plans))
+
+    return render_template('plans.html', plans=render_plans(tree))
+
+
+def create_tree(parent, plans):
+    parent['children'] = []
+    for item in plans:
+        if item['parent_id'] == parent['id']:
+            parent['children'].append(create_tree(item, plans))
+
+    return parent
+
+
+def render_plans(plans):
+    html = '<ul>'
+    for plan in plans:
+        url = url_for('plan_check', plan_id=plan['eid'], finish='')
+        checked = 'checked' if plan['finish'] else ''
+
+        html += '<li><div class="plan-item"><label>'
+        html += '<input type="checkbox" class="plan-check" ' + checked + ' name=plan[] value="' + url + '" />' + plan['title']
+        html += '</label></div>'
+        if plan['children']:
+            html += render_plans(plan['children'])
+        html += '</li>'
+
+    html += '</ul>'
+
+    return html
+
+
+@app.route('/plan_add', methods=['POST'])
+def plan_add():
+    parent_ids = request.form.getlist('parent_ids[]')
+    titles = request.form.getlist('titles[]')
+    dao.add_plans(parent_ids, titles, session['user_id'])
+
+    flash('更新成功')
+    return redirect(url_for('plans'))
+
+
+@app.route('/plan_check/<plan_id>/<finish>')
+def plan_check(plan_id, finish):
+    form = {"id": plan_id, 'finish': finish}
+    result = dao.update_plans_status(form, session['user_id'])
+    if result:
+        return ajax_response('更新成功', {"finish": finish})
+    else:
+        finish = dao.get_plan_finish(plan_id, session['user_id'])
+        return ajax_response('更新失败', {"finish": finish})
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
