@@ -23,18 +23,23 @@ $(document).ready(function() {
         var currentValue = parentLi.find('.plan-check').val().split('/').slice(-2, -1)[0];
 
         editPlan(planTitle);
+        planSave();
         showOperation(planItem);
         addPlan(currentValue, parentLi);
         removePlan(currentValue, parentLi);
+
+        $('.plan-title-value').on('click', function(event) {
+            event.stopPropagation();
+        });
     });
 
     /**
      * 显示操作按钮（save、add、delete）
      */
     var showOperation = function(planItem) {
-        var edit = ' <span class="plan-save btn btn-success btn-xs small">Save</span> ';
-        var add = ' <span class="plan-add btn btn-primary btn-xs small">Add</span> ';
-        var remove = ' <span class="plan-remove btn btn-danger btn-xs small">Delete</span>';
+        var edit = ' <button class="plan-save btn btn-success btn-xs small">Save</button> ';
+        var add = ' <button class="plan-add btn btn-primary btn-xs small">Add</button> ';
+        var remove = ' <button class="plan-remove btn btn-danger btn-xs small">Delete</button>';
 
         $('.plan-list').find('.operation').remove();
         planItem.append('<div class="operation">' + edit + add + remove + '</div>');
@@ -43,9 +48,8 @@ $(document).ready(function() {
     /**
      * 点击其他区域隐藏操作按钮
      */
-    $(document).on('click', function(event) {
+    $(document).on('click', function() {
         $(this).find('.operation').remove();
-        console.log(event);
         resetTitleForm();
     });
 
@@ -76,7 +80,12 @@ $(document).ready(function() {
     /**
      * 保存新增的计划
      */
+    var hasSubmit = false;
     $('.submit-add-plan').on('click', function() {
+
+        if (hasSubmit) return;
+        hasSubmit = true;
+
         var parentIds = [], titles = [];
 
         $(".plan-add-value").each(function() {
@@ -171,25 +180,32 @@ $(document).ready(function() {
         var url = planTitle.data('url'),
             value= planTitle.html();
 
-        var form = '<input name="title" class="plan-title-value" value="' + value + '" />';
+        var form = $('<input name="title" class="plan-title-value" value="' + value + '" />');
 
         resetTitleForm();
         planTitle.hide();
         planTitle.before(form);
+    };
 
-        $('.plan-save').on('click', function() {
-            $.post(
+    /**
+     * 保存编辑内容
+     */
+    var planSave = function() {
+        $('.plan-save').on('click mouseover', function(event) {
+            event.stopPropagation();
+            console.log('dsdsl');
+/*            $.post(
                 url,
                 {title: $('.plan-title-value').val()},
-                function(restult) {
+                function (restult) {
                     console.log('result')
                 },
                 'json'
-            );
-        })
+            );*/
+        });
     };
+    planSave();
 
-    //$('.plan-title-value').on('click', function(event) {event.stopPropagation();});
 
     /**
      * 重置编辑输入框
