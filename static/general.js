@@ -50,6 +50,15 @@ $(document).ready(function(){
 
     $('.alert').show().delay(1500).fadeOut();
 
+    /**
+     * 弹出显示提示信息
+     * @param message
+     * @param danger
+     */
+    var promptMsg = function(message, danger) {
+        danger = (danger === true) ? 'alert-danger' : 'alert-success';
+        $('<div>').appendTo('body').addClass('alert ' + danger).html(message).show().delay(1500).fadeOut();
+    };
 
     /**
      * 鼠标悬浮时显示添加、编辑、删除计划按钮
@@ -68,7 +77,15 @@ $(document).ready(function(){
         self.append('<div class="operation">' + add + edit + remove + '</div>');
 
         addPlan(currentValue, parentLi);
+        removePlan(currentValue, parentLi);
+    });
 
+    /**
+     * 鼠标移出时删除操作按钮
+     */
+    $('.plan-item').mouseleave(function() {
+        var self = $(this);
+        self.find('.operation').remove();
     });
 
     /**
@@ -94,38 +111,67 @@ $(document).ready(function(){
         });
     };
 
-    var submitAddPlan = function() {
-        $('.submit-add-plan').on('click', function() {
-            var parentIds = [], titles = [];
-            $(".plan-add-value").each(function() {
-                var parentId = $(this).data('parent'),
-                    title = $(this).val();
+    /**
+     * 添加计划
+     */
+    $('.submit-add-plan').on('click', function() {
+        var parentIds = [], titles = [];
 
-                if (parentId && title) {
-                    parentIds.push(parentId);
-                    titles.push(title);
-                }
-            });
+        $(".plan-add-value").each(function() {
+            var parentId = $(this).data('parent'),
+                title = $(this).val();
 
-            $.post(
-                $(this).data('url'),
-                {parent_ids: parentIds, titles: titles},
-                function(result) {console.log('ok了');
-                    window.location.reload();
-                },
-                'json'
-            );
+            if (parentId && title) {
+                parentIds.push(parentId);
+                titles.push(title);
+            }
         });
-    };
-    submitAddPlan();
+
+        $.post(
+            $(this).data('url'),
+            {parent_ids: parentIds, titles: titles},
+            function(result) {
+                if (result.status) {
+                    promptMsg('Success.');
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 1500)
+                } else {
+                    promptMsg('Failed.', true);
+                }
+            },
+            'json'
+        ).fail(function() { promptMsg('Failed.', true); });
+    });
+
 
     /**
-     * 鼠标移出时删除操作按钮
+     * 删除计划按钮
+     * @param currentValue
+     * @param parentLi object 上级<li>节点
      */
-    $('.plan-item').mouseleave(function() {
-        var self = $(this);
-        self.find('.operation').remove();
-    });
+    var removePlan = function(currentValue, parentLi) {
+        $('.plan-remove').on('click', function() {
+            var childUl = parentLi.children('ul');
+            var message = childUl.length > 0 ? 'Delete this item and its children?' : 'Delete?';
+            var yes = confirm(message);
+
+            if (yes) {
+                $.get(
+                    '/plan_delete/' + currentValue,
+                    function(result) {
+                        if (result.status) {
+                            promptMsg('Success.');
+                            parentLi.remove();
+                        } else {
+                            promptMsg('Failed.', true);
+                        }
+                    },
+                    'json'
+                ).fail(function() { promptMsg('Failed.', true); });
+            }
+        });
+    };
 
 
     $('.plan-check').on('click', function() {

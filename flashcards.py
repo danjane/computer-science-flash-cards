@@ -168,7 +168,6 @@ def mark_known():
     card = dao.get_card(card_id)
 
     dao.mark_known(card_id)
-    #flash('Changed.')
 
     return redirect(url_for('start', category_id=card['category_eid'], _anchor=card_id))
 
@@ -216,21 +215,27 @@ def render_plans(plans):
 def plan_add():
     parent_ids = request.form.getlist('parent_ids[]')
     titles = request.form.getlist('titles[]')
-    dao.add_plans(parent_ids, titles)
+    result = dao.plans_add(parent_ids, titles)
 
-    flash('更新成功')
-    return redirect(url_for('plans'))
+    return ajax_response({"status": result})
+
+
+@app.route('/plan_delete/<plan_id>')
+def plan_delete(plan_id):
+    result = dao.plan_delete(plan_id)
+
+    return ajax_response({"status": result})
 
 
 @app.route('/plan_check/<plan_id>/<finish>')
 def plan_check(plan_id, finish):
     form = {"id": plan_id, 'finish': finish}
     result = dao.update_plans_status(form)
-    if result:
-        return ajax_response('更新成功', {"finish": finish})
-    else:
+
+    if not result:
         finish = dao.get_plan_finish(plan_id)
-        return ajax_response('更新失败', {"finish": finish})
+
+    return ajax_response({"finish": finish})
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -254,7 +259,7 @@ def login():
         session['username'] = user['username']
         session['logged_in'] = True
         session.permanent = True
-        flash("You've logged in")
+
         return redirect(url_for('categories'))
 
     return render_template('login.html', error=error)
@@ -291,10 +296,8 @@ def register():
     return render_template('register.html', error=error)
 
 
-def ajax_response(message, data):
-    output = {"msg": message}
-    output.update(data)
-    return jsonify(output)
+def ajax_response(data):
+    return jsonify(data)
 
 
 """如果直接运行本模块，则直接执行"""

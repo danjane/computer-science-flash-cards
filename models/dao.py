@@ -272,7 +272,7 @@ def get_plans():
         return append_encode_id(plans)
 
 
-def add_plans(parent_ids, titles):
+def plans_add(parent_ids, titles):
     parent_ids = list(map(decode_id, parent_ids))
     user_ids = [user_id()] * len(parent_ids)
     values = list(zip(titles, parent_ids, user_ids))
@@ -281,6 +281,18 @@ def add_plans(parent_ids, titles):
         query = 'INSERT INTO plans (title, parent_id, user_id) VALUES (%s, %s, %s)'
         cursor.executemany(query, values)
         get_db().commit()
+
+        return cursor.rowcount
+
+
+def plan_delete(plan_id):
+    plan_id = decode_id(plan_id)
+    with get_db().cursor() as cursor:
+        query = 'DELETE FROM plans WHERE (id = %s OR parent_id = %s) AND user_id = %s'
+        cursor.execute(query, [plan_id, plan_id, user_id()])
+        get_db().commit()
+
+        return cursor.rowcount
 
 
 def update_plans_status(form):
