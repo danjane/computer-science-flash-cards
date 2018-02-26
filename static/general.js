@@ -1,50 +1,16 @@
 $(document).ready(function(){
-    var added = false;
-    $('.addCategory').on('click', function(e) {
-        e.preventDefault();
 
-        $('.editing').remove();
-        $('.behind').removeClass('hidden');
+    $('.modal').on('show.bs.modal', function(e) {
+        var submitButton = $(this).find('button[type=submit]');
+        var form = $(this).find('form');
 
-        if (added === false) {
-            var item = $('.emptyCategory')
-                .clone(true)
-                .removeClass('hidden emptyCategory')
-                .addClass('adding');
-            $('.categoryPanel').prepend(item);
-            added = true;
-        }
+        submitButton.attr('disabled', false);
+        form.on('submit', function() {
+            submitButton.attr('disabled', true);
+        });
     });
 
-    $('.editCategory').on('click', function(e) {
-        e.preventDefault();
-        var parent = $(this).parents('.categoryItem');
-
-        $('.adding').remove();
-        $('.editing').remove();
-        $('.behind').removeClass('hidden');
-        parent.addClass('hidden behind');
-
-        var id = parent.find('.categoryId').html();
-        var name = parent.find('.categoryName').html();
-
-        var item = $('.emptyCategory')
-                .clone(true)
-                .removeClass('hidden emptyCategory')
-                .addClass('editing');
-        item.find('.categoryId').val(id);
-        item.find('.categoryName').val(name);
-        parent.before(item);
-        added = false;
-    });
-
-    $('.undoCategory').on('click', function() {
-        $(this).parents('.categoryItem').remove();
-        $('.behind').removeClass('hidden');
-        added = false;
-    });
-
-    $('#confirm-delete').on('show.bs.modal', function(e) {
+    $('#deleteCategory').on('show.bs.modal', function(e) {
         $(this).find('.btn-ok').attr('href', $(e.relatedTarget).data('href'));
     });
 
