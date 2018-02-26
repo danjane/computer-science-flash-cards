@@ -40,7 +40,9 @@
                             <div class="card-block container back">
                                 <div class="align-container">
                                     <div class="text-left align-middle">
+                                        {% autoescape false %}
                                         {{ card.back }}
+                                        {% endautoescape %}
                                     </div>
                                 </div>
                             </div>

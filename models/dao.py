@@ -130,7 +130,8 @@ def get_cards(category_id):
             ORDER BY id DESC
         '''
         cursor.execute(query, [category_id, user_id()])
-        return append_encode_id(cursor.fetchall())
+        cards = append_encode_id(cursor.fetchall())
+        return replace_wrap(cards)
 
 
 def add_card(form):
@@ -327,6 +328,13 @@ def get_plan_finish(plan_id):
         cursor.execute(query, [id, user_id()])
         plan = cursor.fetchone()
         return plan['finish']
+
+
+def replace_wrap(values):
+    for key, value in enumerate(values):
+        values[key]['back'] = values[key]['back'].replace('\n', '<br />')
+
+    return values
 
 
 def append_encode_id(values, column='id'):
