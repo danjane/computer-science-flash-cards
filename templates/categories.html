@@ -3,8 +3,9 @@
 
     <div class="row">
         <div class="col-xs-12 small">
-            <button class="btn btn-xs btn-link" data-toggle="modal" data-target="#manageCategoryModal" >
-                <i class="fa fa-plus"></i> Add Category</button>
+            <button class="btn btn-xs btn-link" data-toggle="modal" data-target="#manageCategoryModal" data-action="Add">
+                <i class="fa fa-plus"></i> Add
+            </button>
         </div>
     </div>
 
@@ -24,8 +25,8 @@
                         </a>
 
                         <button class="btn btn-xs btn-link" data-toggle="modal" data-target="#manageCategoryModal"
-                                data-id="{{ category.eid }}" data-name="{{ category.name }}">
-                            <i class="fa fa-pencil" aria-hidden="true"></i> Edit
+                                data-id="{{ category.eid }}" data-name="{{ category.name }}" data-action="Rename">
+                            <i class="fa fa-pencil" aria-hidden="true"></i> Rename
                         </button>
 
                         <a href="#" data-href="{{ url_for('category_delete', category_id=category.eid) }}"
@@ -37,7 +38,7 @@
             {% else %}
                 <tr>
                     <td>
-                        <em>No Category to show.</em>
+                        <em>No Category.</em>
                     </td>
                 </tr>
             {% endfor %}
@@ -51,12 +52,14 @@
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                                 aria-hidden="true">&times;</span></button>
-                        <h4 class="modal-title" id="manageCategoryModalLabel">Edit Category</h4>
+                        <h4 class="modal-title" id="manageCategoryModalLabel">
+                            <span class="action"></span> Category
+                        </h4>
                     </div>
                     <div class="modal-body">
                         <div class="form-group">
                             <input type="hidden" id="category-id" name="id" value="" />
-                            <label for="category-name" class="control-label">Category Name:</label>
+                            <label for="category-name" class="control-label">Name:</label>
                             <input type="text" name="name" class="form-control" id="category-name" required maxlength="30">
                         </div>
                     </div>
@@ -90,6 +93,7 @@
     <script type="application/javascript">
         $(document).ready(function(){
             $('#manageCategoryModal').on('show.bs.modal', function(e) {
+                $(this).find('.action').html($(e.relatedTarget).data('action'));
                 $(this).find('#category-id').attr('value', $(e.relatedTarget).data('id'));
                 $(this).find('#category-name').attr('value', $(e.relatedTarget).data('name'));
             });
