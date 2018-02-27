@@ -3,7 +3,7 @@
 
     <div class="row">
         <div class="col-xs-12 small">
-            <button class="btn btn-xs btn-link" data-toggle="modal" data-target="#addCategoryModal" >
+            <button class="btn btn-xs btn-link" data-toggle="modal" data-target="#manageCategoryModal" >
                 <i class="fa fa-plus"></i> Add Category</button>
         </div>
     </div>
@@ -15,7 +15,6 @@
                 <tr class="categoryItem">
                     <td class="categoryContent text-right">
                         <a href="{{ url_for('category', category_id=category.eid) }}" class="pull-left">
-                            <span class="hidden categoryId">{{ category.eid }}</span>
                             <span class="categoryName">{{ category.name }}</span>
                             <span class="small text-muted">({{ category.count }})</span>
                         </a>
@@ -24,11 +23,13 @@
                             <i class="fa {{ 'fa-star' if category.top else 'fa-star-o' }}" aria-hidden="true"></i> Top
                         </a>
 
-                        <button class="btn btn-xs btn-link editCategory">
+                        <button class="btn btn-xs btn-link" data-toggle="modal" data-target="#manageCategoryModal"
+                                data-id="{{ category.eid }}" data-name="{{ category.name }}">
                             <i class="fa fa-pencil" aria-hidden="true"></i> Edit
                         </button>
-                        <a href="#" data-href="{{ url_for('category_delete', category_id=category.eid) }}" class="btn btn-xs btn-link"
-                            data-toggle="modal" data-target="#deleteCategory">
+
+                        <a href="#" data-href="{{ url_for('category_delete', category_id=category.eid) }}"
+                           class="btn btn-xs btn-link" data-toggle="modal" data-target="#deleteCategoryModal">
                             <i class="fa fa-trash" aria-hidden="true"></i> Delete
                         </a>
                     </td>
@@ -40,35 +41,21 @@
                     </td>
                 </tr>
             {% endfor %}
-                <tr class="hidden emptyCategory categoryItem">
-                    <td class="categoryContent text-right">
-                        <form action="{{ url_for('category_save') }}" method="post">
-                            <input type="hidden" class="categoryId" name="id" value="" />
-                            <input type="text" class="pull-left categoryName" name="name" placeholder="Category Name" required maxlength="30"/>
-                            <button type="submit" class="btn btn-xs btn-link">
-                                <i class="fa fa-check" aria-hidden="true"></i> Save
-                            </button>
-                            <button type="button" class="btn btn-xs btn-link undoCategory">
-                                <i class="fa fa-close" aria-hidden="true"></i> Cancel
-                            </button>
-                        </form>
-                    </td>
-                </tr>
         </table>
     </div>
 
-    <div class="modal fade" id="addCategoryModal" tabindex="-1" role="dialog" aria-labelledby="addCategoryModalLabel">
+    <div class="modal fade" id="manageCategoryModal" tabindex="-1" role="dialog" aria-labelledby="manageCategoryModalLabel">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <form action="{{ url_for('category_save') }}" method="post">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                                 aria-hidden="true">&times;</span></button>
-                        <h4 class="modal-title" id="addCategoryModalLabel">Add Category</h4>
+                        <h4 class="modal-title" id="manageCategoryModalLabel">Edit Category</h4>
                     </div>
                     <div class="modal-body">
                         <div class="form-group">
-                            <input type="hidden" class="categoryId" name="id" value="" />
+                            <input type="hidden" id="category-id" name="id" value="" />
                             <label for="category-name" class="control-label">Category Name:</label>
                             <input type="text" name="name" class="form-control" id="category-name" required maxlength="30">
                         </div>
@@ -82,11 +69,13 @@
         </div>
     </div>
 
-    <div class="modal fade" id="deleteCategory" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal fade" id="deleteCategoryModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    Delete?
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="addCategoryModalLabel">Delete Category</h4>
                 </div>
                 <div class="modal-body">
                     Are you sure to delete this Category and all of its cards?
@@ -98,4 +87,16 @@
             </div>
         </div>
     </div>
+    <script type="application/javascript">
+        $(document).ready(function(){
+            $('#manageCategoryModal').on('show.bs.modal', function(e) {
+                $(this).find('#category-id').attr('value', $(e.relatedTarget).data('id'));
+                $(this).find('#category-name').attr('value', $(e.relatedTarget).data('name'));
+            });
+
+            $('#deleteCategoryModal').on('show.bs.modal', function(e) {
+                $(this).find('.btn-ok').attr('href', $(e.relatedTarget).data('href'));
+            });
+        });
+    </script>
 {% endblock %}
