@@ -3,7 +3,7 @@
 
     <div class="row">
         <div class="col-xs-12 small">
-            <button class="btn btn-xs btn-link" data-toggle="modal" data-target="#manageCategoryModal" data-action="Add">
+            <button class="btn btn-xs btn-link" data-toggle="modal" data-target="#manageModal" data-action="Add">
                 <i class="fa fa-plus"></i> Add
             </button>
         </div>
@@ -24,13 +24,13 @@
                             <i class="fa {{ 'fa-star' if category.top else 'fa-star-o' }}" aria-hidden="true"></i> Top
                         </a>
 
-                        <button class="btn btn-xs btn-link" data-toggle="modal" data-target="#manageCategoryModal"
+                        <button class="btn btn-xs btn-link" data-toggle="modal" data-target="#manageModal"
                                 data-id="{{ category.eid }}" data-name="{{ category.name }}" data-action="Rename">
                             <i class="fa fa-pencil" aria-hidden="true"></i> Rename
                         </button>
 
                         <a href="#" data-href="{{ url_for('category_delete', category_id=category.eid) }}"
-                           class="btn btn-xs btn-link" data-toggle="modal" data-target="#deleteCategoryModal">
+                           class="btn btn-xs btn-link" data-toggle="modal" data-target="#deleteModal">
                             <i class="fa fa-trash" aria-hidden="true"></i> Delete
                         </a>
                     </td>
@@ -45,14 +45,14 @@
         </table>
     </div>
 
-    <div class="modal fade" id="manageCategoryModal" tabindex="-1" role="dialog" aria-labelledby="manageCategoryModalLabel">
+    <div class="modal fade" id="manageModal" tabindex="-1" role="dialog" aria-labelledby="manageModalLabel">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <form action="{{ url_for('category_save') }}" method="post">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                                 aria-hidden="true">&times;</span></button>
-                        <h4 class="modal-title" id="manageCategoryModalLabel">
+                        <h4 class="modal-title" id="manageModalLabel">
                             <span class="action"></span> Category
                         </h4>
                     </div>
@@ -72,7 +72,7 @@
         </div>
     </div>
 
-    <div class="modal fade" id="deleteCategoryModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -92,13 +92,13 @@
     </div>
     <script type="application/javascript">
         $(document).ready(function(){
-            $('#manageCategoryModal').on('show.bs.modal', function(e) {
+            $('#manageModal').on('show.bs.modal', function(e) {
                 $(this).find('.action').html($(e.relatedTarget).data('action'));
                 $(this).find('#category-id').attr('value', $(e.relatedTarget).data('id'));
                 $(this).find('#category-name').attr('value', $(e.relatedTarget).data('name'));
             });
 
-            $('#deleteCategoryModal').on('show.bs.modal', function(e) {
+            $('#deleteModal').on('show.bs.modal', function(e) {
                 $(this).find('.btn-ok').attr('href', $(e.relatedTarget).data('href'));
             });
         });
