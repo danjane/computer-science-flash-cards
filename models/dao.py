@@ -274,6 +274,9 @@ def get_plans():
 
 
 def plans_add(parent_ids, titles):
+    """
+    批量插入plan
+    """
     parent_ids = list(map(decode_id, parent_ids))
     user_ids = [user_id()] * len(parent_ids)
     values = list(zip(titles, parent_ids, user_ids))
@@ -286,14 +289,30 @@ def plans_add(parent_ids, titles):
         return cursor.rowcount
 
 
-def plan_update(form):
-    plan_id = decode_id(form['plan_id'])
+def plan_add(form):
+    """
+    插入一条plan
+    """
+    last = len(form) - 1
+    form[last] = decode_id(form[len(form) - 1])
+    form.append(user_id())
     with get_db().cursor() as cursor:
-        cursor.execute('UPDATE plans SET title = %s WHERE id = %s AND user_id = %s', [
-            form['title'],
-            plan_id,
-            user_id()
-        ])
+        query = 'INSERT INTO plans (title, parent_id, user_id) VALUES (%s, %s, %s)'
+        cursor.execute(query, form)
+        get_db().commit()
+
+        return cursor.rowcount
+
+
+def plan_update(form):
+    """
+    更新一条plan
+    """
+    last = len(form) - 1
+    form[last] = decode_id(form[len(form) - 1])
+    form.append(user_id())
+    with get_db().cursor() as cursor:
+        cursor.execute('UPDATE plans SET title = %s WHERE id = %s AND user_id = %s', form)
         get_db().commit()
 
         return cursor.rowcount

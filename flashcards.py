@@ -195,15 +195,27 @@ def create_tree(parent, plans):
 
 def render_plans(plans):
     html = '<ul>'
+    buttons = """<div class="operation hide">
+        <button class="btn btn-xs small btn-primary" data-toggle="modal" data-target="#manageModal"
+                data-action="Add" data-parent-id="{plan_id}" data-parent-title="{title}">Add
+        </button>
+        <button class="btn btn-xs small btn-success" data-toggle="modal" data-target="#manageModal"
+                data-action="Edit" data-id="{plan_id}" data-title="{title}">Edit
+        </button>
+        <button class="btn btn-xs small btn-danger" data-toggle="modal" data-target="#manageModal"
+                data-id="{plan_id}">
+            Delete
+        </button>
+        </div>
+    """
+
     for plan in plans:
-        check_url = url_for('plan_check', plan_id=plan['eid'], finish='')
-        save_url = url_for('plan_save', plan_id=plan['eid'])
-        checked = ' checked' if plan['finish'] else ''
+        eid = plan['eid']
+        title = plan['title']
 
         html += '<li><div class="plan-item">'
-        html += '<label><input type="checkbox" class="plan-check"{} name=plan[] value="{}" /></label> '\
-                .format(checked, check_url)
-        html += '<span class="plan-title" data-url="{}">{}</span>'.format(save_url, plan['title'])
+        html += '<span class="plan-title">{}</span>'.format(title)
+        html += buttons.format(plan_id=eid, title=title)
         html += '</div>'
         if plan['children']:
             html += render_plans(plan['children'])
@@ -214,19 +226,16 @@ def render_plans(plans):
     return html
 
 
-@app.route('/plan_save/<plan_id>', methods=['POST'])
-def plan_save(plan_id):
-    form = {"title": request.form['title'], "plan_id": plan_id}
-    result = dao.plan_update(form)
+@app.route('/plan_save', methods=['POST'])
+def plan_save():
+    plan_id = request.form['id']
+    title = request.form['title']
 
-    return ajax_response({"status": result})
-
-
-@app.route('/plan_add', methods=['POST'])
-def plan_add():
-    parent_ids = request.form.getlist('parent_ids[]')
-    titles = request.form.getlist('titles[]')
-    result = dao.plans_add(parent_ids, titles)
+    if plan_id:
+        result = dao.plan_update([title, plan_id])
+    else:
+        parent_id = request.form['parent_id']
+        result = dao.plan_add([title, parent_id])
 
     return ajax_response({"status": result})
 

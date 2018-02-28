@@ -1,19 +1,75 @@
 {% extends "layout.html" %}
 {% block body %}
-
+    <button class="plan-add btn btn-primary btn-xs small" data-toggle="modal" data-target="#manageModal"
+            data-action="Add">
+        Add
+    </button>
     <br />
     <div class="row container plan-list">
         {% autoescape false %}
             {{ plans }}
         {% endautoescape %}
+    </div>
 
-        <script src="{{ url_for('static', filename='plans.js') }}"></script>
-
-        <div class="hidden submit-add col-xs-12 text-center">
-            <button type="button" class="btn btn-primary submit-add-plan" data-url="{{ url_for('plan_add') }}">
-                Submit Add
-            </button>
+    <div class="modal fade" id="manageModal" tabindex="-1" role="dialog" aria-labelledby="manageModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form action="{{ url_for('plan_save') }}" method="post">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="manageModalLabel">
+                            <span class="action"></span> plan
+                        </h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <input type="hidden" id="plan-id" name="id" value="" />
+                            <input type="hidden" id="plan-parent-id" name="parent_id" value="" />
+                            <label for="plan-title" class="control-label">Title:</label>
+                            <textarea name="title" class="form-control" id="plan-title" required
+                                      maxlength="255" rows="7"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
+    <script type="application/javascript">
+        $(document).ready(function(){
+            /**
+             * 点击内容区域显示添加、编辑、删除计划按钮
+             */
+            $('.plan-item').on('click mouseover', function() {
+                var operation = $(this).find('.operation');
+                if (!operation.hasClass('hide')) {
+                    return;
+                }
+
+                $('.plan-list').find('.operation').addClass('hide');
+                operation.removeClass('hide');
+            });
+
+            /**
+             * 点击其他区域隐藏操作按钮
+             */
+            /*
+            $(document).on('click', function() {
+                $(this).find('.operation').remove();
+            });*/
+
+             $('#manageModal').on('show.bs.modal', function(e) {
+                $(this).find('.action').html($(e.relatedTarget).data('action'));
+
+                $(this).find('#plan-id').attr('value', $(e.relatedTarget).data('id'));
+                $(this).find('#plan-parent-id').attr('value', $(e.relatedTarget).data('parent-id'));
+                $(this).find('#plan-title').html($(e.relatedTarget).data('title'));
+            });
+        });
+    </script>
 {% endblock %}
