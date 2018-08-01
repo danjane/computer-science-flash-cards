@@ -1,0 +1,56 @@
+{% extends "layout.html" %}
+{% block body %}
+
+    <div class="row">
+        <div class="col-xs-12 small">
+            <a class="btn btn-xs btn-link" href="{{ url_for('categories') }}"><i class="fa fa-arrow-left"></i> Back</a>
+            <a class="btn btn-xs btn-link" href="{{ url_for('manage', category_id=category_id) }}"><i class="fa fa-plus"></i> Add Card</a>
+        </div>
+    </div>
+
+    <br />
+    <div class="row">
+        <table class="table table-striped col-xs-12">
+            {% for card in cards %}
+                <tr>
+                    <td class="text-right">
+                        <span class="pull-left">
+                            {{ card.front }}
+                        </span>
+
+                        <a href="{{ url_for('manage', category_id=category_id, card_id=card.eid) }}" class="btn btn-xs btn-link">
+                            <i class="fa fa-pencil" aria-hidden="true"></i> Edit
+                        </a>
+                        <a href="" data-href="{{ url_for('delete', category_id=category_id, card_id=card.eid) }}" class="btn btn-xs btn-link"
+                            data-toggle="modal" data-target="#confirm-delete">
+                            <i class="fa fa-trash" aria-hidden="true"></i> Delete
+                        </a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td>
+                        <em>No Card to show.</em>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <div class="modal fade" id="confirm-delete" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                Delete?
+            </div>
+            <div class="modal-body">
+                Are you sure to delete this card?
+            </div>
+            <div class="modal-footer">
+                <a class="btn btn-danger btn-ok">Delete</a>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "layout.html" %}
+{% block body %}
+    <h2>Settings</h2>
+    <form action="{{ url_for('settings_save') }}" method="post">
+        <table class="table table-bordered settingsPanel">
+            <tr>
+                <td class="text-right">Username</td>
+                <td>
+                    <input type="text" name="username" value="{{ user.username }}" required />
+                </td>
+            </tr>
+            <tr>
+                <td class="text-right">Email</td>
+                <td><input type="email" name="email" value="{{ user.email }}" required /></td>
+            </tr>
+            <tr>
+                <td class="text-right">Password</td>
+                <td>
+                    <input type="password" name="password" value="" minlength="6" />
+                    <span class="text-muted small">* Leave blank if do not change</span>
+                </td>
+            </tr>
+            <tr>
+                <td class="text-right">Flashcards display mode</td>
+                <td>
+                    <label>
+                        <input type="radio" name="display_mode" {{ 'checked="checked"' if user.display_mode == 1 else ''}} value="1" />In Order
+                    </label>
+                    <label>
+                        <input type="radio" name="display_mode" {{ 'checked="checked"' if user.display_mode == 2 else ''}} value="2" />Random
+                    </label>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <a href="{{ url_for('logout') }}" type="button" class="btn btn-danger">Logout</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+{% endblock %}

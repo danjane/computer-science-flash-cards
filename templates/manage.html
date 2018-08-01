@@ -1,0 +1,34 @@
+{% extends "layout.html" %}
+{% block body %}
+    <div class="well">
+        <h2>Edit Card</h2>
+        <form action="{{ url_for('card_save') }}" method="post">
+            <div class="form-group">
+                <label for="front">Front</label>
+                <input type="text" name="front" id="front" class="form-control" value="{{ card.front|e }}">
+            </div>
+            <div class="form-group">
+                <label for="back">Back</label>
+                <textarea name="back"
+                          class="form-control"
+                          id="back"
+                          placeholder="back of card"
+                          rows="12">{{ card.back|e }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <select name="category_id" class="form-control">
+                    {% for category in categories %}
+                        <option value="{{ category.eid }}" {{ 'selected' if category.eid == category_id else '' }}>{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <input type="hidden" name="card_id" value="{{ card.eid|e }}" />
+                <button type="submit" class="btn btn-sm btn-primary">Save</button>
+                <a type="button" class="btn btn-sm btn-default" href="{{ url_for('category', category_id=category_id) }}">Back</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}

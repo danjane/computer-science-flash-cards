@@ -1,50 +1,105 @@
-.toggleSelected {
-    background-color: #62b06b;
-    color: #ffffff;
-}
-
 textarea {
     font-family: monospace;
 }
 
-.cardContent h4 {
-    margin-top: 0;
+.alert {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    min-width: 50px;
+    transform: translateX(-50%) translateY(-50%);
+    z-index: 99999;
 }
 
-.alignContainer {
+.swiper-slide {
+    min-height: 20rem;
+    border:1px solid #f8f8f8;
+    background-color: #f0f0f0;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.swiper-pagination {
+    position: relative;
+    bottom: 0;
+}
+
+.pagination-nav {
+    display: block;
+}
+
+.swiper-pagination {
+    opacity: .5;
+    font-size: 0.85rem;
+}
+
+.card-block {
+    z-index: 100;
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.back {
+    display: none;
+}
+
+.align-container {
     display: table;
     width: 100%;
+    height: 100%;
 }
 
-.alignMiddle {
-    height: 20em;
+.align-middle {
     display: table-cell;
     vertical-align: middle;
 }
 
-.cardBack {
-    display: none;
+.btn-muted {
+    color: #777 !important;
 }
 
-.largerText {
-    font-size: 2em;
+.plan-list {
+    padding-bottom: 2rem;
+    background: #eee;
 }
 
-
-/* disables collapsing header menu */
-
-.navbar-collapse.collapse {
-  display: block!important;
+.plan-list ul{
+    padding-left: 2.5rem;
+    list-style-position: outside;
 }
 
-.navbar-nav>li, .navbar-nav {
-  float: left !important;
+.plan-list > ul {
+    padding-left: 1rem;
+    list-style-type: decimal;
 }
 
-.navbar-nav.navbar-right:last-child {
-  margin-right: 0 !important;
+.plan-list ul li {
+    line-height: 2.1rem;
 }
 
-.navbar-right {
-  float: right!important;
+.plan-list label {
+    cursor: pointer;
+}
+
+.plan-item .operation{
+    display: inline;
+    font-weight: 500;
+    font-size: 85%;
+}
+
+.plan-list form{
+    display: inline-block;
+}
+
+.plan-list .normal-text {
+    resize: none;
+    overflow: hidden;
+    height: 2rem;
+    border: none;
+    background: transparent;
 }
